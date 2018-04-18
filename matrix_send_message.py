@@ -23,7 +23,7 @@ room_critical = client.join_room(conf.room_critical)
 
 text="""%(zbx_subject)s
 %(zbx_body)s
-"""%("zbx_subject":zbx_subject, "zbx_body":zbx_body)
+"""%{"zbx_subject":zbx_subject, "zbx_body":zbx_body}
 
 ret=room_info.send_text(text)
 print("ret=",ret)
