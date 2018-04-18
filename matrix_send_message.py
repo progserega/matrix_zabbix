@@ -26,9 +26,9 @@ room_dst=conf.room_info
 
 keys=zbx_subject.split(';')
 if len(keys) > 1:
-  status=keys[0]
-  severity=keys[1]
-  trigger_name=keys[2]
+  status=keys[0].strip()
+  severity=keys[1].strip()
+  trigger_name=keys[2].strip()
   if status in status_types and severity in severity_types:
     zbx_subject = status_types[status] + "; " + severity_types[severity] + "; " + trigger_name
 
