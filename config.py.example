@@ -5,6 +5,3 @@ server="https://matrix.org"
 username="zabbix"
 password="XXXXXXXX"
 
-room_info="!WjXYGTbPhLBgmanbim:matrix.org"
-room_major="!TGHwuSWOYmeshfepvy:matrix.org"
-room_critical="!DUvvjYNbWOcwewFAhR:matrix.org"

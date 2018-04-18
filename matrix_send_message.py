@@ -29,12 +29,6 @@ if len(keys) > 1:
   status=keys[0]
   severity=keys[1]
   trigger_name=keys[2]
-  if severity=="High" or severity=="Disaster":
-    room_dst=conf.room_critical
-  if severity=="Average":
-    room_dst=conf.room_major
-  if severity=="Information" or severity=="Not classified" or severity=="Warning":
-    room_dst=conf.room_info
   if status in status_types and severity in severity_types:
     zbx_subject = status_types[status] + "; " + severity_types[severity] + "; " + trigger_name
 
@@ -46,11 +40,10 @@ client = MatrixClient(conf.server)
 # Existing user
 token = client.login_with_password(username=conf.username, password=conf.password)
 
-room = client.join_room(conf.room_dst)
+room = client.join_room(zbx_to)
 
 text="""%(zbx_subject)s
 %(zbx_body)s
 """%{"zbx_subject":zbx_subject, "zbx_body":zbx_body}
 
 ret=room.send_text(text)
-print("ret=",ret)
