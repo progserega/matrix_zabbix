@@ -4,10 +4,39 @@ import config as conf
 from matrix_client.client import MatrixClient
 import sys
 
+severity_types={\
+  "Disaster":"Чрезвычайная",\
+  "High":"Высокая",\
+  "Average":"Средняя",\
+  "Warning":"Предупреждение",\
+  "Information":"Информация",\
+  "Not classified":"Не классифицировано"\
+}
+
+status_types={\
+  "OK":"Решена проблема",\
+  "PROBLEM":"Проблема"\
+}
+
 zbx_to = sys.argv[1]
 zbx_subject = sys.argv[2]
 zbx_body = sys.argv[3]
 
+room_dst=conf.room_info
+
+keys=zbx_subject.split(';')
+if len(keys) > 1:
+  status=keys[0]
+  severity=keys[1]
+  trigger_name=keys[2]
+  if severity=="High" or severity=="Disaster":
+    room_dst=conf.room_critical
+  if severity=="Average":
+    room_dst=conf.room_major
+  if severity=="Information" or severity=="Not classified" or severity=="Warning":
+    room_dst=conf.room_info
+  if status in status_types and severity in severity_types:
+    zbx_subject = status_types[status] + "; " + severity_types[severity] + "; " + trigger_name
 
 client = MatrixClient(conf.server)
 
@@ -17,13 +46,11 @@ client = MatrixClient(conf.server)
 # Existing user
 token = client.login_with_password(username=conf.username, password=conf.password)
 
-room_info = client.join_room(conf.room_info)
-room_major = client.join_room(conf.room_major)
-room_critical = client.join_room(conf.room_critical)
+room = client.join_room(conf.room_dst)
 
 text="""%(zbx_subject)s
 %(zbx_body)s
 """%{"zbx_subject":zbx_subject, "zbx_body":zbx_body}
 
-ret=room_info.send_text(text)
+ret=room.send_text(text)
 print("ret=",ret)
