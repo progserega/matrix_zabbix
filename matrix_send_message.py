@@ -73,6 +73,9 @@ except MissingSchema as e:
   log(text="Bad URL format.")
   print(e)
   sys.exit(3)
+except:
+  log(text="ERROR (unknown) login_with_password()!")
+  sys.exit(5)
 
 room = None
 try:
@@ -85,22 +88,34 @@ except MatrixRequestError as e:
   else:
     log(text="Couldn't find room.")
     sys.exit(12)
+except:
+  log(text="ERROR (unknown) join_room()!")
+  sys.exit(13)
 
-text="""%(zbx_subject)s
+text=None
+try:
+  text="""%(zbx_subject)s
 %(zbx_body)s
 """%{"zbx_subject":zbx_subject, "zbx_body":zbx_body}
+except:
+  log(text="ERROR (unknown) format message!")
+  sys.exit(14)
+
 try:
   ret=room.send_text(text)
 except MatrixRequestError as e:
   print(e)
   log(text="ERROR send message!")
+  sys.exit(15)
 except:
   log(text="ERROR (unknown) send message!")
+  sys.exit(16)
 
 if 'event_id' in ret:
   if conf.DEBUG:
     log(text="SUCCESS send message. Message ID=%s"%ret["event_id"])
 else:
   log(text="ERROR send message!")
+  sys.exit(17)
     
 
