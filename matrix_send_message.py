@@ -5,6 +5,7 @@ from matrix_client.client import MatrixClient
 from matrix_client.api import MatrixRequestError
 from requests.exceptions import MissingSchema
 import sys
+import time
 import sendemail as mail
 
 
@@ -42,8 +43,6 @@ if conf.DEBUG:
   log(text="zbx_to=%s"%zbx_to)
   log(text="zbx_subject=%s"%zbx_subject)
   log(text="zbx_body=%s"%zbx_body)
-
-room_dst=conf.room_info
 
 keys=zbx_subject.split(';')
 if len(keys) > 1:
