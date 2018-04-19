@@ -91,3 +91,11 @@ text="""%(zbx_subject)s
 """%{"zbx_subject":zbx_subject, "zbx_body":zbx_body}
 
 ret=room.send_text(text)
+
+if 'event_id' in ret:
+  if conf.DEBUG:
+    log(text="SUCCESS send message. Message ID=%s"%ret["event_id"])
+else:
+  log(text="ERROR send message!")
+    
+
