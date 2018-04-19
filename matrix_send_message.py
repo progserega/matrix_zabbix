@@ -40,9 +40,9 @@ zbx_subject = sys.argv[2]
 zbx_body = sys.argv[3]
 
 if conf.DEBUG:
-  log(text="zbx_to=%s"%zbx_to)
-  log(text="zbx_subject=%s"%zbx_subject)
-  log(text="zbx_body=%s"%zbx_body)
+  log(text=u"zbx_to=%s"%zbx_to)
+  log(text=u"zbx_subject=%s"%zbx_subject.decode('utf8'))
+  log(text=u"zbx_body=%s"%zbx_body.decode('utf8'))
 
 keys=zbx_subject.split(';')
 if len(keys) > 1:
