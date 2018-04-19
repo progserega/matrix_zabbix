@@ -89,8 +89,13 @@ except MatrixRequestError as e:
 text="""%(zbx_subject)s
 %(zbx_body)s
 """%{"zbx_subject":zbx_subject, "zbx_body":zbx_body}
-
-ret=room.send_text(text)
+try:
+  ret=room.send_text(text)
+except MatrixRequestError as e:
+  print(e)
+  log(text="ERROR send message!")
+except:
+  log(text="ERROR (unknown) send message!")
 
 if 'event_id' in ret:
   if conf.DEBUG:
