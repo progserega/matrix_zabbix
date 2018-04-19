@@ -70,6 +70,17 @@ except MissingSchema as e:
   print(e)
   sys.exit(3)
 
+room = None
+try:
+  room = client.join_room(zbx_to)
+except MatrixRequestError as e:
+  print(e)
+  if e.code == 400:
+    log(text="Room ID/Alias in the wrong format")
+    sys.exit(11)
+  else:
+    log(text="Couldn't find room.")
+    sys.exit(12)
 
 text="""%(zbx_subject)s
 %(zbx_body)s
