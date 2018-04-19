@@ -8,3 +8,5 @@ password="XXXXXXXX"
 log_path="/var/log/matrix/matrix_send_message.log"
 email_server="mail-rsprim-ru.rs.int"
 email_admin=["semenov@rsprim.ru"]
+
+DEBUG=True

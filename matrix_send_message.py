@@ -38,6 +38,11 @@ zbx_to = sys.argv[1]
 zbx_subject = sys.argv[2]
 zbx_body = sys.argv[3]
 
+if conf.DEBUG:
+  log(text="zbx_to=%s"%zbx_to)
+  log(text="zbx_subject=%s"%zbx_subject)
+  log(text="zbx_body=%s"%zbx_body)
+
 room_dst=conf.room_info
 
 keys=zbx_subject.split(';')
