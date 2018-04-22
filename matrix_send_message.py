@@ -50,7 +50,7 @@ if len(keys) > 1:
   severity=keys[1].strip()
   trigger_name=keys[2].strip()
   if status in status_types and severity in severity_types:
-    zbx_subject = status_types[status] + "; " + severity_types[severity] + "; " + trigger_name
+    zbx_subject = status + "; " + severity_types[severity] + "; " + trigger_name
 
 client = MatrixClient(conf.server)
 
