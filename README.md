@@ -8,4 +8,5 @@ Setup:
 6. In zabbix add script as send-script. And for specificied user add his room_id as params for script.
 
 for test, you may exec script manualy:
- ./matrix_send_message.py 'matrix_room_id' 'zabbix subject' 'zabbix event body text'
+
+  ./matrix_send_message.py 'matrix_room_id' 'zabbix subject' 'zabbix event body text'
