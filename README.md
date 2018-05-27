@@ -1,5 +1,5 @@
-
 Setup:
+
 0. pip install matrix_client
 1. Create zabbix account on matrix-server.
 2. Create rooms for users and add users (who will be receive zabbix-alerts). Remember pars user-room_id
