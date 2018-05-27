@@ -34,4 +34,3 @@ def sendmail(text="произошёл инцедент. Необходимо у�
     smtp.quit()
 
 
-#sendmail(send_to="semenov@rsprim.ru",files=["README"])
