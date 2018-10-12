@@ -60,7 +60,7 @@ client = MatrixClient(conf.server)
 token=None
 # Existing user
 try:
-  token = client.login_with_password(username=conf.username, password=conf.password)
+  token = client.login(username=conf.username, password=conf.password,device_id=conf.device_id)
 except MatrixRequestError as e:
   print(e)
   if e.code == 403:

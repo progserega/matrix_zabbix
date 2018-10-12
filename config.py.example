@@ -4,6 +4,7 @@
 server="https://matrix.org"
 username="zabbix"
 password="XXXXXXXX"
+device_id="HSDNLQODDJ"
 
 log_path="/var/log/matrix/matrix_send_message.log"
 email_server="mail-rsprim-ru.rs.int"
