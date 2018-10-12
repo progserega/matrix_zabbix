@@ -74,7 +74,7 @@ except MissingSchema as e:
   print(e)
   sys.exit(3)
 except:
-  log(text="ERROR (unknown) login_with_password()!")
+  log(text="ERROR (unknown) login()!")
   sys.exit(5)
 
 room = None
