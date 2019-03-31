@@ -13,7 +13,7 @@ def log(send_email=False,text=u"Произошёл сбой в скрипте %s
 	f=open(conf.log_path, "a" )
 	log_text=u"%(time)s: %(prog)s: %(text)s" % {"text":text,"prog":sys.argv[0], "time":time.strftime("%Y-%m-%d %H:%M:%S", time.localtime( time.time() ) )}
 	f.write(log_text.encode('utf-8') + "\n")
-	if conf.DEBUG:
+	if conf.debug:
 		print(log_text.encode('utf-8'))
 	f.close()
 	if send_email:
@@ -39,7 +39,7 @@ zbx_to = sys.argv[1]
 zbx_subject = sys.argv[2]
 zbx_body = sys.argv[3]
 
-if conf.DEBUG:
+if conf.debug:
   log(text=u"zbx_to=%s"%zbx_to)
   log(text=u"zbx_subject=%s"%zbx_subject.decode('utf8'))
   log(text=u"zbx_body=%s"%zbx_body.decode('utf8'))
@@ -52,15 +52,15 @@ if len(keys) > 1:
   if status in status_types and severity in severity_types:
     zbx_subject = status + "; " + severity_types[severity] + "; " + trigger_name
 
-client = MatrixClient(conf.server)
+client = MatrixClient(conf.matrix_server)
 
 # New user
-#token = client.register_with_password(username=conf.username, password=conf.password)
+#token = client.register_with_password(username=conf.matrix_username, password=conf.matrix_password)
 
 token=None
 # Existing user
 try:
-  token = client.login(username=conf.username, password=conf.password,device_id=conf.device_id)
+  token = client.login(username=conf.matrix_username, password=conf.matrix_password,device_id=conf.matrix_device_id)
 except MatrixRequestError as e:
   print(e)
   if e.code == 403:
@@ -112,7 +112,7 @@ except:
   sys.exit(16)
 
 if 'event_id' in ret:
-  if conf.DEBUG:
+  if conf.debug:
     log(text="SUCCESS send message. Message ID=%s"%ret["event_id"])
 else:
   log(text="ERROR send message!")

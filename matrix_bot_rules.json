@@ -1,0 +1,106 @@
+{
+  "help":{
+    "aliases":["помощь","!h","1"],
+    "message":"<p><strong>Вас приветствует бот ZABBIX.</strong></p>\n<p>На данный момент я могу выполнять следующие команды:</p>\n <p><em>(Команды можно вводить просто как порядковый номер команды)</em></p> \n <ol>\n  <li><strong>помощь</strong> (можно набрать иначе: <strong>help</strong> или <strong>!h</strong>) - эта справка</li>\n <li><strong>статистика</strong> - статистика по районам и проблемам в них</li></ol><p><em>Всего хорошего, с уважением служба ИТ.</em></p>",
+    "message_type":"html",
+    "type":"sys_cmd_cancel"
+  },
+  "привет":{
+    "aliases":["эй","hello","хай","прив","привет!","hello!"],
+    "message":"Привет!\nТоже рад Вас слышать!\nДля справки наберите 'помощь'.\nВсего наилучшего, с уважением служба ИТ",
+    "message_type":"text",
+    "type":"sys_cmd_cancel"
+  },
+  "version":{
+    "aliases":["zabbix","ver","версия"],
+    "type":"zabbix_get_version"
+  },
+  "стат":{
+    "aliases":["2","статистика","stat"],
+    "message":"<strong>Статистика по ZABBIX-триггерам</strong><br>Выберите район:<br>1. Командорская<br>2. Управление филиалом, ЮЭС<br>3. СЭС<br>4. ЦЭС",
+    "message_type":"html",
+    "type":"cmd",
+    "answer":{
+      "1":{
+        "set_static_keys":{"zabbix_groupid":"33"},
+        "message":"Статистика по <strong>Командорской</strong><br>Выберите важность для просмотра детальной статистики или 0 - для выхода",
+        "message_type":"html",
+        "type":"zabbix_show_stat",
+        "answer":{
+            "1":{
+              "set_static_keys":{"zabbix_priority":"5"},
+              "type":"zabbix_show_triggers"
+            },
+            "2":{
+              "set_static_keys":{"zabbix_priority":"4"},
+              "type":"zabbix_show_triggers"
+            },
+            "3":{
+              "set_static_keys":{"zabbix_priority":"3"},
+              "type":"zabbix_show_triggers"
+            }
+          }
+      },
+      "2":{
+        "set_static_keys":{"zabbix_groupid":"41"},
+        "message":"Статистика по <strong>Управлению филиалом, ЮЭС</strong><br>Выберите важность для просмотра детальной статистики или 0 - для выхода",
+        "message_type":"html",
+        "type":"zabbix_show_stat",
+        "answer":{
+            "1":{
+              "set_static_keys":{"zabbix_priority":"5"},
+              "type":"zabbix_show_triggers"
+            },
+            "2":{
+              "set_static_keys":{"zabbix_priority":"4"},
+              "type":"zabbix_show_triggers"
+            },
+            "3":{
+              "set_static_keys":{"zabbix_priority":"3"},
+              "type":"zabbix_show_triggers"
+            }
+          }
+      },
+      "3":{
+        "set_static_keys":{"zabbix_groupid":"28"},
+        "message":"Статистика по <strong>СЭС</strong><br>Выберите важность для просмотра детальной статистики или 0 - для выхода",
+        "message_type":"html",
+        "type":"zabbix_show_stat",
+        "answer":{
+            "1":{
+              "set_static_keys":{"zabbix_priority":"5"},
+              "type":"zabbix_show_triggers"
+            },
+            "2":{
+              "set_static_keys":{"zabbix_priority":"4"},
+              "type":"zabbix_show_triggers"
+            },
+            "3":{
+              "set_static_keys":{"zabbix_priority":"3"},
+              "type":"zabbix_show_triggers"
+            }
+          }
+      },
+      "4":{
+        "set_static_keys":{"zabbix_groupid":"31"},
+        "message":"Статистика по <strong>ЦЭС</strong><br>Выберите важность для просмотра детальной статистики или 0 - для выхода",
+        "message_type":"html",
+        "type":"zabbix_show_stat",
+        "answer":{
+            "1":{
+              "set_static_keys":{"zabbix_priority":"5"},
+              "type":"zabbix_show_triggers"
+            },
+            "2":{
+              "set_static_keys":{"zabbix_priority":"4"},
+              "type":"zabbix_show_triggers"
+            },
+            "3":{
+              "set_static_keys":{"zabbix_priority":"3"},
+              "type":"zabbix_show_triggers"
+            }
+          }
+        }
+      }
+    }
+}
