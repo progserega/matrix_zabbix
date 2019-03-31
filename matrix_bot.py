@@ -20,7 +20,7 @@ import os
 import pickle
 import re
 import threading
-import MySQLdb as mdb
+#import MySQLdb as mdb
 import requests
 
 from matrix_client.client import MatrixClient
