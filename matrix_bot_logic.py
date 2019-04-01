@@ -39,6 +39,21 @@ def process_message(log,client,user,room,message,formated_message=None,format_ty
   source_message=None
   source_cmd=None
 
+  # Проверяем сколько в комнате пользователей. Если более двух - то это не приватный чат и потому не отвечаем на команды:
+
+  users = client.rooms[room].get_joined_members()
+  if users == None:
+    log.error("room.get_joined_members()")
+    return False
+  users_num = len(users)
+  log.debug("in room %d users"%users_num)
+  if users_num > 2:
+    # публичная комната - не обрабатываем команды:
+    log.debug("this is public room - skip proccess_commands")
+    return True
+  else:
+    log.debug("this is private chat (2 users) - proccess commands")
+
   if reply_to_id!=None and format_type=="org.matrix.custom.html" and formated_message!=None:
     # разбираем, чтобы получить исходное сообщение и ответ
     source_message=re.sub('<mx-reply><blockquote>.*<\/a><br>','', formated_message)
