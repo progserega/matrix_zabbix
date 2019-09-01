@@ -324,7 +324,7 @@ def send_statistic(log,client,user,room,statistic_about,statistic_days):
   try:
     con = mdb.connect(conf.send_db_host, conf.send_db_user, conf.send_db_passwd, conf.send_db_name, charset="utf8", use_unicode=True);
     cur = con.cursor()
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("send_statistic(): error connect to db (%d: %s)" % (e.args[0],e.args[1]))
     return False
   # получаем статистику:
@@ -344,7 +344,7 @@ def send_statistic(log,client,user,room,statistic_about,statistic_days):
       mail_address=user_data[0]
       telegram_number=user_data[1]
       sms_number=user_data[2]
-    except mdb.Error, e:
+    except mdb.Error as e:
       log.error("send_statistic(): sql error (%d: %s)" % (e.args[0],e.args[1]))
       return False
     or_where=""
@@ -380,7 +380,7 @@ def send_statistic(log,client,user,room,statistic_about,statistic_days):
     log.debug("send_statistic(): sql: %s" % sql )
     cur.execute(sql)
     count_all = cur.fetchone()[0]
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("send_statistic(): sql error (%d: %s)" % (e.args[0],e.args[1]))
     return False
   log.debug("count_all=%d"%count_all)
@@ -390,7 +390,7 @@ def send_statistic(log,client,user,room,statistic_about,statistic_days):
     log.debug("send_statistic(): sql: %s" % sql )
     cur.execute(sql)
     count_sent_by_matrix = cur.fetchone()[0]
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("send_statistic(): sql error (%d: %s)" % (e.args[0],e.args[1]))
     return False
   log.debug("count_sent_by_matrix=%d"%count_sent_by_matrix)
@@ -400,7 +400,7 @@ def send_statistic(log,client,user,room,statistic_about,statistic_days):
     log.debug("send_statistic(): sql: %s" % sql )
     cur.execute(sql)
     count_readed_by_matrix = cur.fetchone()[0]
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("send_statistic(): sql error (%d: %s)" % (e.args[0],e.args[1]))
     return False
   log.debug("count_readed_by_matrix=%d"%count_readed_by_matrix)
@@ -415,7 +415,7 @@ def send_statistic(log,client,user,room,statistic_about,statistic_days):
     log.debug("send_statistic(): sql: %s" % sql )
     cur.execute(sql)
     count_success_telegram = cur.fetchone()[0]
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("send_statistic(): sql error (%d: %s)" % (e.args[0],e.args[1]))
     return False
   log.debug("count_success_telegram=%d"%count_success_telegram)
@@ -426,7 +426,7 @@ def send_statistic(log,client,user,room,statistic_about,statistic_days):
     log.debug("send_statistic(): sql: %s" % sql )
     cur.execute(sql)
     count_success_email = cur.fetchone()[0]
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("send_statistic(): sql error (%d: %s)" % (e.args[0],e.args[1]))
     return False
   log.debug("count_success_email=%d"%count_success_email)
@@ -437,7 +437,7 @@ def send_statistic(log,client,user,room,statistic_about,statistic_days):
     log.debug("send_statistic(): sql: %s" % sql )
     cur.execute(sql)
     count_new = cur.fetchone()[0]
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("send_statistic(): sql error (%d: %s)" % (e.args[0],e.args[1]))
     return False
   log.debug("count_new=%d"%count_new)
@@ -448,7 +448,7 @@ def send_statistic(log,client,user,room,statistic_about,statistic_days):
     log.debug("send_statistic(): sql: %s" % sql )
     cur.execute(sql)
     count_errors = cur.fetchone()[0]
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("send_statistic(): sql error (%d: %s)" % (e.args[0],e.args[1]))
     return False
   log.debug("count_errors=%d"%count_errors)
@@ -459,7 +459,7 @@ def send_statistic(log,client,user,room,statistic_about,statistic_days):
     log.debug("send_statistic(): sql: %s" % sql )
     cur.execute(sql)
     count_fault = cur.fetchone()[0]
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("send_statistic(): sql error (%d: %s)" % (e.args[0],e.args[1]))
     return False
   log.debug("count_fault=%d"%count_fault)
@@ -470,7 +470,7 @@ def send_statistic(log,client,user,room,statistic_about,statistic_days):
     log.debug("send_statistic(): sql: %s" % sql )
     cur.execute(sql)
     count_success_with_errors = cur.fetchone()[0]
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("send_statistic(): sql error (%d: %s)" % (e.args[0],e.args[1]))
     return False
   log.debug("count_success_with_errors=%d"%count_success_with_errors)

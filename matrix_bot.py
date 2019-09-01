@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # A simple chat client for matrix.
@@ -97,7 +97,7 @@ def create_room(db_con,matrix_uid):
     log.debug("sql='%s'"%sql)
     cur.execute(sql)
     con.commit()
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("Error %d: %s" % (e.args[0],e.args[1]))
     log.error(u"Ошибка работы с базой данных (%s: %s)" % (e.args[0],e.args[1]) )
     return False
@@ -115,7 +115,7 @@ def connect_to_db():
   try:
     con = mdb.connect(conf.send_db_host, conf.send_db_user, conf.send_db_passwd, conf.send_db_name, charset="utf8", use_unicode=True);
     cur = con.cursor()
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("Error %d: %s" % (e.args[0],e.args[1]))
     log.error(u"Ошибка работы с базой данных (%s: %s)" % (e.args[0],e.args[1]) )
     return None
@@ -132,7 +132,7 @@ def lock_table(db_con):
     sql=u"LOCK TABLES telegram WRITE"
     log.debug("sql: %s" % sql )
     cur.execute(sql)
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("Error %d: %s" % (e.args[0],e.args[1]))
     log.error("Ошибка работы с базой данных (%s: %s)" % (e.args[0],e.args[1]) )
     return False
@@ -146,7 +146,7 @@ def unlock_table(db_con):
     sql=u"UNLOCK TABLES"
     log.debug("sql: %s" % sql )
     cur.execute(sql)
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("Error %d: %s" % (e.args[0],e.args[1]))
     log.error("Ошибка работы с базой данных (%s: %s)" % (e.args[0],e.args[1]) )
     return False
@@ -171,7 +171,7 @@ def update_status_messages(db_con,room_id,matrix_uid,time_stamp):
     log.debug("sql='%s'"%sql)
     cur.execute(sql)
     data=cur.fetchall()
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("Error %d: %s" % (e.args[0],e.args[1]))
     log.error("Ошибка работы с базой данных (%s: %s)" % (e.args[0],e.args[1]) )
     return False
@@ -195,7 +195,7 @@ def update_status_messages(db_con,room_id,matrix_uid,time_stamp):
     log.debug("sql='%s'"%sql)
     cur.execute(sql)
     data=cur.fetchall()
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("Error %d: %s" % (e.args[0],e.args[1]))
     log.error(u"Ошибка работы с базой данных (%s: %s)" % (e.args[0],e.args[1]) )
     unlock_table(db_con);
@@ -212,7 +212,7 @@ def update_status_messages(db_con,room_id,matrix_uid,time_stamp):
         log.debug("sql='%s'"%sql)
         cur.execute(sql)
         con.commit()
-      except mdb.Error, e:
+      except mdb.Error as e:
         log.error("Error %d: %s" % (e.args[0],e.args[1]))
         log.error(u"Ошибка работы с базой данных (%s: %s)" % (e.args[0],e.args[1]) )
         unlock_table(db_con);
@@ -238,7 +238,7 @@ def update_users_without_rooms(db_con):
     if items==None:
       # все есть:
       return True
-  except mdb.Error, e:
+  except mdb.Error as e:
     log.error("Error %d: %s" % (e.args[0],e.args[1]))
     log.error(u"Ошибка работы с базой данных (%s: %s)" % (e.args[0],e.args[1]) )
     return False
