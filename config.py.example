@@ -15,8 +15,6 @@ zabbix_passwd="XXXXXX"
 
 #========= Global ===========
 
-log_path="matrix_send_message.log"
-email_server="mail.corp.net"
-email_admin=["admin@mail.corp.net"]
+log_path="matrix_zabbix.log"
 
 debug=True
