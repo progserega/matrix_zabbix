@@ -255,7 +255,7 @@ def on_message(event):
     global client
     global log
     global lock
-    log.debug("%s"%(json.dumps(event, indent=4, sort_keys=True,ensure_ascii=False,encoding='utf8')))
+    log.debug("%s"%(json.dumps(event, indent=4, sort_keys=True,ensure_ascii=False)))
     if event['type'] == "m.room.member":
         if event['content']['membership'] == "join":
             log.info("{0} joined".format(event['content']['displayname']))
@@ -275,7 +275,7 @@ def on_message(event):
             if "formatted_body" in event['content'] and "format" in event['content']:
               formatted_body=event['content']['formatted_body']
               format_type=event['content']['format']
-            log.debug("{0}: {1}".format(event['sender'], event['content']['body'].encode('utf8')))
+            log.debug("{0}: {1}".format(event['sender'], event['content']['body']))
             log.debug("try lock before mbl.process_message()")
             with lock:
               log.debug("success lock before mbl.process_message()")
@@ -299,7 +299,7 @@ def on_message(event):
             log.error("bad formated event reply - skip")
             mba.send_message(log,client,room.room_id,"Внутренняя ошибка разбора сообщения - обратитесь к разработчику")
             return False
-          log.debug("{0}: {1}".format(event['sender'], event['content']['body'].encode('utf8')))
+          log.debug("{0}: {1}".format(event['sender'], event['content']['body']))
           log.debug("try lock before mbl.process_message()")
           with lock:
             log.debug("success lock before mbl.process_message()")
@@ -328,7 +328,7 @@ def on_event(event):
 
     log.debug("event:")
     log.debug(event)
-    log.debug(json.dumps(event, indent=4, sort_keys=True,ensure_ascii=False,encoding='utf8'))
+    log.debug(json.dumps(event, indent=4, sort_keys=True,ensure_ascii=False))
     for i in range(1,10):
       db_con=connect_to_db()
       if db_con == None:
@@ -373,7 +373,7 @@ def on_invite(room, event):
       log.debug(room)
       log.debug("event_data:")
       log.debug(event)
-      log.debug(json.dumps(event, indent=4, sort_keys=True,ensure_ascii=False,encoding='utf8'))
+      log.debug(json.dumps(event, indent=4, sort_keys=True,ensure_ascii=False))
 
     # По приглашению не вступаем с точки зрения безопасности. Только мы можем приглашать в комнаты, а не нас:
     # Просматриваем сообщения:
