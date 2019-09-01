@@ -21,6 +21,7 @@ import pickle
 import re
 import threading
 #import MySQLdb as mdb
+import traceback
 import requests
 
 from matrix_client.client import MatrixClient
@@ -37,6 +38,13 @@ log = None
 data={}
 lock = None
 
+def get_exception_traceback_descr(e):
+  tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
+  result=""
+  for msg in tb_str:
+    result+=msg
+  return result
+
 def create_room(db_con,matrix_uid):
   global log
   global client
@@ -47,6 +55,7 @@ def create_room(db_con,matrix_uid):
   try:
     response = client.api.get_display_name(matrix_uid)
   except MatrixRequestError as e:
+    log.error(get_exception_traceback_descr(e))
     log.error("Couldn't get user display name - may be no such user on server? username = '%s'"%matrix_uid)
     log.error("skip create room for user '%s' - need admin!"%matrix_uid)
     return False
@@ -55,6 +64,7 @@ def create_room(db_con,matrix_uid):
   try:
     room=client.create_room(is_public=False, invitees=None)
   except MatrixRequestError as e:
+    log.error(get_exception_traceback_descr(e))
     log.debug(e)
     if e.code == 400:
       log.error("Room ID/Alias in the wrong format")

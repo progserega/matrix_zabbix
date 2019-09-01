@@ -26,6 +26,88 @@ import config as conf
 from matrix_client.api import MatrixRequestError
 from pyzabbix import ZabbixAPI
 
+def zabbix_test(log):
+  zapi = zabbix_init(log)
+  if zapi == None:
+    log.error("zabbix_init()")
+    return False
+
+  groups=zabbix_get_groups_user(log,zapi,"semenov_sv")
+  print("groups=",groups)
+  print("groups len=",len(groups))
+  groups_names=zabbix_get_groups_names(log,zapi,groups)
+
+  print("groups_names=",groups_names)
+  print("groups_names len=",len(groups_names))
+  return True
+  for item in problems:
+    log.debug(json.dumps(item, indent=4, sort_keys=True,ensure_ascii=False))
+    sys.exit()
+
+  #ret=zapi.user.get(output='extend',search={'alias':'semenov_sv'})
+  ret=zapi.problem.get(output='extend',groupids=ret)
+  print("ret=",ret)
+  return True
+  #ret_json=json.loads(ret)
+  userid=ret[0]["userid"]
+  #ret=zapi.user.get(search={'alias':'svc_ZBXT_340-00'})
+  #ret=zapi.mediatype.get(output='extend',userids=[10])
+  ret=zapi.usergroup.get(output='extend',userids=[userid])
+  print("ret=",ret)
+  return True
+
+def zabbix_get_problems_of_groups(log,zapi,groups):
+  try:
+    ret=zapi.problem.get(output='extend',groupids=groups)
+    return ret
+  except Exception as e:
+    log.error(get_exception_traceback_descr(e))
+    return None
+
+def zabbix_check_login(log,username):
+  try:
+    zapi = zabbix_init(log)
+    if zapi == None:
+      log.error("zabbix_init()")
+      return False
+    ret=zapi.user.get(output='extend',search={'alias':username})
+    if len(ret) != 1:
+      log.warning("users not one")
+      return False
+    else:
+      return True
+  except Exception as e:
+    log.error(get_exception_traceback_descr(e))
+    return None
+
+def zabbix_get_groups_names(log,zapi,groups):
+  try:
+    groups=[11]
+    ret=zapi.usergroup.get(output='extend',groupids=groups)
+    groups_names=[]
+    for item in ret:
+      groups_names.append(item['name'])
+    return groups_names
+  except Exception as e:
+    log.error(get_exception_traceback_descr(e))
+    return None
+
+def zabbix_get_groups_user(log,zapi,username):
+  try:
+    ret=zapi.user.get(output='extend',search={'alias':username})
+    if len(ret) != 1:
+      log.warning("users not one")
+      return None
+    userid=ret[0]["userid"]
+    ret=zapi.usergroup.get(output='extend',userids=[userid])
+    groups=[]
+    for item in ret:
+      groups.append(item['usrgrpid'])
+    return groups
+  except Exception as e:
+    log.error(get_exception_traceback_descr(e))
+    return None
+
 def get_exception_traceback_descr(e):
   tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
   result=""
@@ -33,11 +115,35 @@ def get_exception_traceback_descr(e):
     result+=msg
   return result
 
+def zabbix_init(log,server=conf.zabbix_server,user=conf.zabbix_user,passwd=conf.zabbix_passwd):
+  try:
+    #stream = logging.StreamHandler(sys.stdout)
+    #if conf.debug:
+    #  stream.setLevel(logging.DEBUG)
+    #else:
+    #  stream.setLevel(logging.ERROR)
+    #log_zabbix = logging.getLogger('pyzabbix')
+    #log_zabbix.addHandler(stream)
+    #if conf.debug:
+    #  log_zabbix.setLevel(logging.DEBUG)
+    #else:
+    #  log_zabbix.setLevel(logging.ERROR)
+
+    z = ZabbixAPI(server)
+    z.login(user,passwd)
+    return z
+  except Exception as e:
+    log.error(get_exception_traceback_descr(e))
+    return None
+
 def zabbix_get_version(log,logic,client,room,user,data,source_message,cmd):
   try:
     log.info("zabbix_get_version()")
-    z = ZabbixAPI(conf.zabbix_server, user=conf.zabbix_user, password=conf.zabbix_passwd)
-    answer = z.do_request('apiinfo.version')
+    zapi = zabbix_init(log)
+    if zapi == None:
+      log.error("zabbix_init()")
+      return False
+    answer = zapi.do_request('apiinfo.version')
     log.debug("zabbix version: %s"%answer['result'])
     if mba.send_message(log,client,room,u"Версия ZABBIX: %s"%answer['result']) == False:
       log.error("send_message() to user")
@@ -49,12 +155,52 @@ def zabbix_get_version(log,logic,client,room,user,data,source_message,cmd):
     return False
   return True
 
+def get_default_groups(log,client,room,user,zapi):
+  try:
+    groups=mbl.get_env(user,"zabbix_groups")
+    if groups != None:
+      return groups
+
+    groups=[59] # по-умолчанию - ВЭФ ИБП
+    zabbix_login=mbl.get_env(user,"zabbix_login")
+    if zabbix_login!=None:
+      groups=zabbix_get_groups_user(log,zapi,zabbix_login)
+      if groups==None:
+        log.error("error zabbix_get_groups_user('%s')"%zabbix_login)
+        mbl.bot_fault(log,client,room)
+        mbl.go_to_main_menu(log,logic,client,room,user)
+        return None
+    else:
+      if mba.send_notice(log,client,room,u"По умолчанию формирую статистику для группы ВЭФ ИБП (установите zabbix_login для индивидуальных настроек в главном меню)") == False:
+        log.error("send_notice() to user %s"%user)
+        return None
+    mbl.set_env(user,"zabbix_groups",groups)
+    return groups
+  except Exception as e:
+    log.error(get_exception_traceback_descr(e))
+    return False
+
 def zabbix_show_stat(log,logic,client,room,user,data,source_message,cmd):
   try:
     log.info("zabbix_show_triggers()")
-    zabbix_groupid=mbl.get_env(user,"zabbix_groupid")
-    if zabbix_groupid==None:
-      log.debug("error get_env zabbix_groupid - return to main menu")
+
+    zapi = zabbix_init(log)
+    if zapi == None:
+      log.error("zabbix_init()")
+      mbl.bot_fault(log,client,room)
+      mbl.go_to_main_menu(log,logic,client,room,user)
+      return False
+
+    groups=get_default_groups(log,client,room,user,zapi)
+    if groups==None:
+      log.debug("error get_default_groups() - return to main menu")
+      mbl.bot_fault(log,client,room)
+      mbl.go_to_main_menu(log,logic,client,room,user)
+      return False
+
+    groups_names=zabbix_get_groups_names(log,zapi,groups)
+    if groups_names==None:
+      log.debug("error zabbix_get_groups_names() - return to main menu")
       mbl.bot_fault(log,client,room)
       mbl.go_to_main_menu(log,logic,client,room,user)
       return False
@@ -63,27 +209,25 @@ def zabbix_show_stat(log,logic,client,room,user,data,source_message,cmd):
       log.error("send_notice() to user %s"%user)
       return False
 
-    z = ZabbixAPI(conf.zabbix_server, user=conf.zabbix_user, password=conf.zabbix_passwd)
-
-    triggers = z.trigger.get(groupids=[zabbix_groupid],only_true="1",active="1",min_severity=3,output="extend",selectFunctions="extend",expandDescription="True")
+    triggers = zapi.trigger.get(groupids=groups,only_true="1",active="1",min_severity=3,output="extend",selectFunctions="extend",expandDescription="True")
     if triggers==None:
-      log.debug("error z.trigger.get() - return to main menu")
+      log.debug("error zapi.trigger.get() - return to main menu")
       mbl.bot_fault(log,client,room)
       mbl.go_to_main_menu(log,logic,client,room,user)
       return False
     priority_3_num=len(triggers)
 
-    triggers = z.trigger.get(groupids=[zabbix_groupid],only_true="1",active="1",min_severity=4,output="extend",selectFunctions="extend",expandDescription="True")
+    triggers = zapi.trigger.get(groupids=groups,only_true="1",active="1",min_severity=4,output="extend",selectFunctions="extend",expandDescription="True")
     if triggers==None:
-      log.debug("error z.trigger.get() - return to main menu")
+      log.debug("error zapi.trigger.get() - return to main menu")
       mbl.bot_fault(log,client,room)
       mbl.go_to_main_menu(log,logic,client,room,user)
       return False
     priority_4_num=len(triggers)
 
-    triggers = z.trigger.get(groupids=[zabbix_groupid],only_true="1",active="1",min_severity=5,output="extend",selectFunctions="extend",expandDescription="True")
+    triggers = zapi.trigger.get(groupids=groups,only_true="1",active="1",min_severity=5,output="extend",selectFunctions="extend",expandDescription="True")
     if triggers==None:
-      log.debug("error z.trigger.get() - return to main menu")
+      log.debug("error zapi.trigger.get() - return to main menu")
       mbl.bot_fault(log,client,room)
       mbl.go_to_main_menu(log,logic,client,room,user)
       return False
@@ -93,13 +237,22 @@ def zabbix_show_stat(log,logic,client,room,user,data,source_message,cmd):
     sev_4_num=priority_4_num-sev_5_num
     sev_3_num=priority_3_num-priority_4_num
 
-    text=u"""<p><strong>Список активных триггеров выбранной важности:</strong></p>
+    zabbix_login=mbl.get_env(user,"zabbix_login")
+    if zabbix_login == None:
+      zabbix_login="не выбрано"
+    text="<p>Текущий пользователь: <strong>%s</strong></p>"%zabbix_login
+    text+="""<p><strong>Список текущих групп:</strong></p>
+    <ui>"""
+    for name in groups_names:
+      text+=u"<li>%s</li> "%name
+
+    text+="""<p><strong>Список проблем для выбранных групп, сгруппированных по важности:</strong></p>
     <ui>
     """
-    text+=u"<li>1. Критических проблем - %d шт.</li> "%sev_5_num
-    text+=u"<li>2. Важных проблем - %d шт.</li> "%sev_4_num
-    text+=u"<li>3. Средних проблем - %d шт.</li> "%sev_3_num
-    text+=u"</ui>"
+    text+="<li>1. Критических проблем - %d шт.</li> "%sev_5_num
+    text+="<li>2. Важных проблем - %d шт.</li> "%sev_4_num
+    text+="<li>3. Средних проблем - %d шт.</li> "%sev_3_num
+    text+="</ui>"
     if mba.send_html(log,client,room,text) == False:
       log.error("send_html() to user %s"%user)
       return False
@@ -111,64 +264,74 @@ def zabbix_show_stat(log,logic,client,room,user,data,source_message,cmd):
     return False
      
 def zabbix_show_triggers(log,logic,client,room,user,data,source_message,cmd):
-  log.info("zabbix_show_triggers()")
-  zabbix_priority=mbl.get_env(user,"zabbix_priority")
-  if zabbix_priority==None:
-    log.debug("error get_env zabbix_priority - return to main menu")
-    mbl.bot_fault(log,client,room)
-    mbl.go_to_main_menu(log,logic,client,room,user)
-    return False
-  zabbix_groupid=mbl.get_env(user,"zabbix_groupid")
-  if zabbix_groupid==None:
-    log.debug("error get_env zabbix_groupid - return to main menu")
-    mbl.bot_fault(log,client,room)
-    mbl.go_to_main_menu(log,logic,client,room,user)
-    return False
+  try:
+    log.info("zabbix_show_triggers()")
+    zabbix_priority=mbl.get_env(user,"zabbix_priority")
+    if zabbix_priority==None:
+      log.debug("error get_env zabbix_priority - return to main menu")
+      mbl.bot_fault(log,client,room)
+      mbl.go_to_main_menu(log,logic,client,room,user)
+      return False
 
-  if mba.send_notice(log,client,room,u"формирую статистику...") == False:
-    log.error("send_notice() to user %s"%user)
-    return False
+    zapi = zabbix_init(log)
+    if zapi == None:
+      log.error("zabbix_init()")
+      mbl.bot_fault(log,client,room)
+      mbl.go_to_main_menu(log,logic,client,room,user)
+      return False
 
-  z = ZabbixAPI(conf.zabbix_server, user=conf.zabbix_user, password=conf.zabbix_passwd)
+    groups=get_default_groups(log,client,room,user,zapi)
+    if groups==None:
+      log.debug("error get_default_groups() - return to main menu")
+      mbl.bot_fault(log,client,room)
+      mbl.go_to_main_menu(log,logic,client,room,user)
+      return False
 
-  #Get List of available groups
-  triggers = z.trigger.get(groupids=[zabbix_groupid],only_true="1",active="1",min_severity=zabbix_priority,output="extend",selectFunctions="extend",expandDescription="True")
-  if triggers==None:
-    log.debug("error z.trigger.get() - return to main menu")
-    mbl.bot_fault(log,client,room)
-    mbl.go_to_main_menu(log,logic,client,room,user)
-    return False
+    if mba.send_notice(log,client,room,u"формирую статистику...") == False:
+      log.error("send_notice() to user %s"%user)
+      return False
 
-  priority=u"среднего"
-  if zabbix_priority == "5":
-    priority=u"критического"
-  elif zabbix_priority == "4":
-    priority=u"важного"
+    #Get List of available groups
+    triggers = zapi.trigger.get(groupids=groups,only_true="1",active="1",min_severity=zabbix_priority,output="extend",selectFunctions="extend",expandDescription="True")
+    if triggers==None:
+      log.debug("error zapi.trigger.get() - return to main menu")
+      mbl.bot_fault(log,client,room)
+      mbl.go_to_main_menu(log,logic,client,room,user)
+      return False
 
-  text=u"""<p>Список активных триггеров <strong>%s</strong> уровня:</p>
-  <ui>
-  """%priority
-  index=1
-  for trigger in triggers:
-    if trigger["priority"] != zabbix_priority:
-      continue
-    text+="<li>"
-    text+="%d. "%index
-    text+=trigger['description']
-    text+="</li>"
-    #text+="\n"
-    index+=1
-    #print(trigger)
-  text+="</ui>"
-  if mba.send_html(log,client,room,text) == False:
-    log.error("send_html() to user %s"%user)
+    priority=u"среднего"
+    if zabbix_priority == "5":
+      priority=u"критического"
+    elif zabbix_priority == "4":
+      priority=u"важного"
+
+    text=u"""<p>Список активных триггеров <strong>%s</strong> уровня:</p>
+    <ui>
+    """%priority
+    index=1
+    for trigger in triggers:
+      if trigger["priority"] != zabbix_priority:
+        continue
+      text+="<li>"
+      text+="%d. "%index
+      text+=trigger['description']
+      text+="</li>"
+      #text+="\n"
+      index+=1
+      #print(trigger)
+    text+="</ui>"
+    if mba.send_html(log,client,room,text) == False:
+      log.error("send_html() to user %s"%user)
+      return False
+    
+    #mbl.go_to_main_menu(log,logic,client,room,user)
+    if mba.send_notice(log,client,room,u"можете выбрать просмотр триггеров иной важности (1 - критические, 2 - важные, 3 - средние) или 0 - для выхода") == False:
+      log.error("send_notice() to user %s"%user)
+      return False
+    return True
+  except Exception as e:
+    log.error(get_exception_traceback_descr(e))
     return False
-  
-  #mbl.go_to_main_menu(log,logic,client,room,user)
-  if mba.send_notice(log,client,room,u"можете выбрать просмотр триггеров иной важности (1 - критические, 2 - важные, 3 - средние) или 0 - для выхода") == False:
-    log.error("send_notice() to user %s"%user)
-    return False
-  return True
     
 
 def rm_show_type_images(log,logic,client,room,user,data,source_message,cmd):
@@ -300,3 +463,33 @@ def show_zayavka_detail(log,memmory,logic,client,room,user,data,message,cmd):
     return False
   mbl.set_state(user,data["answer"])
   return True
+
+
+if __name__ == '__main__':
+  log=logging.getLogger("matrix_bot_logic_zabbix")
+  if conf.debug:
+    log.setLevel(logging.DEBUG)
+  else:
+    log.setLevel(logging.INFO)
+
+  # create the logging file handler
+  fh = logging.FileHandler(conf.log_path)
+  formatter = logging.Formatter('%(asctime)s - %(name)s - %(filename)s:%(lineno)d - %(funcName)s() %(levelname)s - %(message)s')
+  fh.setFormatter(formatter)
+
+  if conf.debug:
+    # логирование в консоль:
+    #stdout = logging.FileHandler("/dev/stdout")
+    stdout = logging.StreamHandler(sys.stdout)
+    stdout.setFormatter(formatter)
+    log.addHandler(stdout)
+
+  # add handler to logger object
+  log.addHandler(fh)
+
+  log.info("Program started")
+
+  if zabbix_test(log) == False:
+    log.error("error zabbix_test()")
+    sys.exit(1)
+  log.info("Program exit!")

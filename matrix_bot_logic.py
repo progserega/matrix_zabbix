@@ -176,6 +176,27 @@ def process_message(log,client,user,room,message,formated_message=None,format_ty
 
 
       #=========================== zabbix =====================================
+      if data["type"]=="zabbix_check_login":
+        log.debug("message=%s"%message)
+        log.debug("cmd=%s"%cmd)
+        zabbix_user_name=get_env(user,"zabbix_login")
+        if zabbix_user_name == None:
+          log.error("get_env('zabbix_login')")
+          if mba.send_message(log,client,room,"Внутренняя ошибка бота") == False:
+            log.error("send_message() to user")
+            return False
+        if mblz.zabbix_check_login(log,zabbix_user_name) == False:
+          if mba.send_message(log,client,room,"Некорректный zabbix_login - попробуйте ещё раз") == False:
+            log.error("send_message() to user")
+            return False
+          return True
+        else:
+          if mba.send_message(log,client,room,"сохранил zabbix_login '%s' для вас. Теперь вы будет получать статистику из групп, в которые входит этот пользователь"%zabbix_user_name) == False:
+            log.error("send_message() to user")
+            return False
+          set_state(user,logic)
+          return True
+          
       if data["type"]=="zabbix_get_version":
         log.debug("message=%s"%message)
         log.debug("cmd=%s"%cmd)
@@ -210,7 +231,7 @@ def replace_env2val(log,user,val):
     env_val=get_env(user,env_name)
     if env_val == None:
       return None
-    if type(env_val) == str or type(env_val) == unicode:
+    if type(env_val) == str: # or type(env_val) == unicode:
       val=val.replace("{%s}"%env_name,env_val,100)
     elif type(env_val) == float:
       val=val.replace("{%s}"%env_name,"%f"%env_val,100)
