@@ -268,7 +268,7 @@ def on_message(event):
                 reply_to_id=event['content']['m.relates_to']['m.in_reply_to']['event_id']
               except:
                 log.error("bad formated event reply - skip")
-                mba.send_message(log,client,room.room_id,"Внутренняя ошибка разбора сообщения - обратитесь к разработчику")
+                mba.send_message(log,client,event['room_id'],"Внутренняя ошибка разбора сообщения - обратитесь к разработчику")
                 return False
             formatted_body=None
             format_type=None
@@ -290,6 +290,7 @@ def on_message(event):
                   file_type=None\
                 ) == False:
                 log.error("error process command: '%s'"%event['content']['body'])
+                mba.send_message(log,client,event['room_id'],"Внутренняя бота - обратитесь к разработчику")
                 return False
         elif event['content']['msgtype'] == "m.image":
           try:
@@ -297,7 +298,7 @@ def on_message(event):
             file_url=event['content']['url']
           except:
             log.error("bad formated event reply - skip")
-            mba.send_message(log,client,room.room_id,"Внутренняя ошибка разбора сообщения - обратитесь к разработчику")
+            mba.send_message(log,client,event['room_id'],"Внутренняя ошибка разбора сообщения - обратитесь к разработчику")
             return False
           log.debug("{0}: {1}".format(event['sender'], event['content']['body']))
           log.debug("try lock before mbl.process_message()")
@@ -492,7 +493,7 @@ if __name__ == '__main__':
 
   # create the logging file handler
   fh = logging.FileHandler(conf.log_path)
-  formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+  formatter = logging.Formatter('%(asctime)s - %(name)s - %(filename)s:%(lineno)d - %(funcName)s() %(levelname)s - %(message)s')
   fh.setFormatter(formatter)
 
   if conf.debug:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # A simple chat client for matrix.
@@ -19,81 +19,97 @@ import json
 import os
 import re
 import requests
+import traceback
 import matrix_bot_api as mba
 import matrix_bot_logic as mbl
 import config as conf
 from matrix_client.api import MatrixRequestError
 from pyzabbix import ZabbixAPI
 
+def get_exception_traceback_descr(e):
+  tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
+  result=""
+  for msg in tb_str:
+    result+=msg
+  return result
+
 def zabbix_get_version(log,logic,client,room,user,data,source_message,cmd):
-  log.info("zabbix_get_version()")
-  z = ZabbixAPI(conf.zabbix_server, user=conf.zabbix_user, password=conf.zabbix_passwd)
-  answer = z.do_request('apiinfo.version')
-  log.debug("zabbix version: %s"%answer['result'])
-  if mba.send_message(log,client,room,u"Версия ZABBIX: %s"%answer['result']) == False:
-    log.error("send_message() to user")
-    mbl.bot_fault(log,client,room)
+  try:
+    log.info("zabbix_get_version()")
+    z = ZabbixAPI(conf.zabbix_server, user=conf.zabbix_user, password=conf.zabbix_passwd)
+    answer = z.do_request('apiinfo.version')
+    log.debug("zabbix version: %s"%answer['result'])
+    if mba.send_message(log,client,room,u"Версия ZABBIX: %s"%answer['result']) == False:
+      log.error("send_message() to user")
+      mbl.bot_fault(log,client,room)
+      return False
+    mbl.go_to_main_menu(log,logic,client,room,user)
+  except Exception as e:
+    log.error(get_exception_traceback_descr(e))
     return False
-  mbl.go_to_main_menu(log,logic,client,room,user)
   return True
 
 def zabbix_show_stat(log,logic,client,room,user,data,source_message,cmd):
-  log.info("zabbix_show_triggers()")
-  zabbix_groupid=mbl.get_env(user,"zabbix_groupid")
-  if zabbix_groupid==None:
-    log.debug("error get_env zabbix_groupid - return to main menu")
-    mbl.bot_fault(log,client,room)
-    mbl.go_to_main_menu(log,logic,client,room,user)
+  try:
+    log.info("zabbix_show_triggers()")
+    zabbix_groupid=mbl.get_env(user,"zabbix_groupid")
+    if zabbix_groupid==None:
+      log.debug("error get_env zabbix_groupid - return to main menu")
+      mbl.bot_fault(log,client,room)
+      mbl.go_to_main_menu(log,logic,client,room,user)
+      return False
+
+    if mba.send_notice(log,client,room,u"формирую статистику...") == False:
+      log.error("send_notice() to user %s"%user)
+      return False
+
+    z = ZabbixAPI(conf.zabbix_server, user=conf.zabbix_user, password=conf.zabbix_passwd)
+
+    triggers = z.trigger.get(groupids=[zabbix_groupid],only_true="1",active="1",min_severity=3,output="extend",selectFunctions="extend",expandDescription="True")
+    if triggers==None:
+      log.debug("error z.trigger.get() - return to main menu")
+      mbl.bot_fault(log,client,room)
+      mbl.go_to_main_menu(log,logic,client,room,user)
+      return False
+    priority_3_num=len(triggers)
+
+    triggers = z.trigger.get(groupids=[zabbix_groupid],only_true="1",active="1",min_severity=4,output="extend",selectFunctions="extend",expandDescription="True")
+    if triggers==None:
+      log.debug("error z.trigger.get() - return to main menu")
+      mbl.bot_fault(log,client,room)
+      mbl.go_to_main_menu(log,logic,client,room,user)
+      return False
+    priority_4_num=len(triggers)
+
+    triggers = z.trigger.get(groupids=[zabbix_groupid],only_true="1",active="1",min_severity=5,output="extend",selectFunctions="extend",expandDescription="True")
+    if triggers==None:
+      log.debug("error z.trigger.get() - return to main menu")
+      mbl.bot_fault(log,client,room)
+      mbl.go_to_main_menu(log,logic,client,room,user)
+      return False
+    priority_5_num=len(triggers)
+
+    sev_5_num=priority_5_num
+    sev_4_num=priority_4_num-sev_5_num
+    sev_3_num=priority_3_num-priority_4_num
+
+    text=u"""<p><strong>Список активных триггеров выбранной важности:</strong></p>
+    <ui>
+    """
+    text+=u"<li>1. Критических проблем - %d шт.</li> "%sev_5_num
+    text+=u"<li>2. Важных проблем - %d шт.</li> "%sev_4_num
+    text+=u"<li>3. Средних проблем - %d шт.</li> "%sev_3_num
+    text+=u"</ui>"
+    if mba.send_html(log,client,room,text) == False:
+      log.error("send_html() to user %s"%user)
+      return False
+    # Завершаем текущий этап и ждём ответа от пользователя:
+    mbl.set_state(user,data["answer"])
+    return True
+  except Exception as e:
+    log.error(get_exception_traceback_descr(e))
     return False
-
-  if mba.send_notice(log,client,room,u"формирую статистику...") == False:
-    log.error("send_notice() to user %s"%user)
-    return False
-
-  z = ZabbixAPI(conf.zabbix_server, user=conf.zabbix_user, password=conf.zabbix_passwd)
-
-  triggers = z.trigger.get(groupids=[zabbix_groupid],only_true="1",active="1",min_severity=3,output="extend",selectFunctions="extend",expandDescription="True")
-  if triggers==None:
-    log.debug("error z.trigger.get() - return to main menu")
-    mbl.bot_fault(log,client,room)
-    mbl.go_to_main_menu(log,logic,client,room,user)
-    return False
-  priority_3_num=len(triggers)
-
-  triggers = z.trigger.get(groupids=[zabbix_groupid],only_true="1",active="1",min_severity=4,output="extend",selectFunctions="extend",expandDescription="True")
-  if triggers==None:
-    log.debug("error z.trigger.get() - return to main menu")
-    mbl.bot_fault(log,client,room)
-    mbl.go_to_main_menu(log,logic,client,room,user)
-    return False
-  priority_4_num=len(triggers)
-
-  triggers = z.trigger.get(groupids=[zabbix_groupid],only_true="1",active="1",min_severity=5,output="extend",selectFunctions="extend",expandDescription="True")
-  if triggers==None:
-    log.debug("error z.trigger.get() - return to main menu")
-    mbl.bot_fault(log,client,room)
-    mbl.go_to_main_menu(log,logic,client,room,user)
-    return False
-  priority_5_num=len(triggers)
-
-  sev_5_num=priority_5_num
-  sev_4_num=priority_4_num-sev_5_num
-  sev_3_num=priority_3_num-priority_4_num
-
-  text=u"""<p><strong>Список активных триггеров выбранной важности:</strong></p>
-  <ui>
-  """
-  text+=u"<li>1. Критических проблем - %d шт.</li> "%sev_5_num
-  text+=u"<li>2. Важных проблем - %d шт.</li> "%sev_4_num
-  text+=u"<li>3. Средних проблем - %d шт.</li> "%sev_3_num
-  text+=u"</ui>"
-  if mba.send_html(log,client,room,text) == False:
-    log.error("send_html() to user %s"%user)
-    return False
-  # Завершаем текущий этап и ждём ответа от пользователя:
-  mbl.set_state(user,data["answer"])
-  return True
-   
+     
 def zabbix_show_triggers(log,logic,client,room,user,data,source_message,cmd):
   log.info("zabbix_show_triggers()")
   zabbix_priority=mbl.get_env(user,"zabbix_priority")
