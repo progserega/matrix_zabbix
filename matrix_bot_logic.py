@@ -333,7 +333,7 @@ def get_state(log,user):
 def init(log,rule_file):
   global logic
   try:
-    json_data=open(rule_file).read()
+    json_data=open(rule_file,"r").read()
   except:
     log.error("open file")
     return False
