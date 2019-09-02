@@ -341,7 +341,7 @@ def get_state(log,user):
 def init(log,rule_file):
   global logic
   try:
-    json_data=open(rule_file,"r").read()
+    json_data=open(rule_file,"r",encoding="utf-8").read()
   except Exception as e:
     log.error("open file")
     log.error(get_exception_traceback_descr(e))
