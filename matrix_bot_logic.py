@@ -185,13 +185,15 @@ def process_message(log,client,user,room,message,formated_message=None,format_ty
           if mba.send_message(log,client,room,"Внутренняя ошибка бота") == False:
             log.error("send_message() to user")
             return False
-        if mblz.zabbix_check_login(log,zabbix_user_name) == False:
+        zabbix_login=mblz.zabbix_check_login(log,zabbix_user_name)
+        if zabbix_login == None:
           if mba.send_message(log,client,room,"Некорректный zabbix_login - попробуйте ещё раз") == False:
             log.error("send_message() to user")
             return False
           return True
         else:
-          if mba.send_message(log,client,room,"сохранил zabbix_login '%s' для вас. Теперь вы будет получать статистику из групп, в которые входит этот пользователь"%zabbix_user_name) == False:
+          set_env(user,"zabbix_login",zabbix_login)
+          if mba.send_message(log,client,room,"сохранил zabbix_login '%s' для вас. Теперь вы будет получать статистику из групп, в которые входит этот пользователь\nВернулся в основное меню"%zabbix_login) == False:
             log.error("send_message() to user")
             return False
           set_state(user,logic)

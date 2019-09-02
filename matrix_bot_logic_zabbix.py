@@ -32,10 +32,10 @@ def zabbix_test(log):
     log.error("zabbix_init()")
     return False
 
-  groups=zabbix_get_groups_user(log,zapi,"semenov_sv")
+  groups=zabbix_get_hosts_groups_by_user(log,zapi,"semenov_sv")
   print("groups=",groups)
   print("groups len=",len(groups))
-  groups_names=zabbix_get_groups_names(log,zapi,groups)
+  groups_names=zabbix_get_hosts_groups_names(log,zapi,groups)
 
   print("groups_names=",groups_names)
   print("groups_names len=",len(groups_names))
@@ -69,20 +69,31 @@ def zabbix_check_login(log,username):
     zapi = zabbix_init(log)
     if zapi == None:
       log.error("zabbix_init()")
-      return False
+      return None
     ret=zapi.user.get(output='extend',search={'alias':username})
+    log.debug(json.dumps(ret, indent=4, sort_keys=True,ensure_ascii=False))
     if len(ret) != 1:
       log.warning("users not one")
-      return False
+      return None
     else:
-      return True
+      return ret[0]['alias']
   except Exception as e:
     log.error(get_exception_traceback_descr(e))
     return None
 
-def zabbix_get_groups_names(log,zapi,groups):
+def zabbix_get_hosts_groups_names(log,zapi,groups):
   try:
-    groups=[11]
+    ret=zapi.hostgroup.get(output='extend',groupids=groups)
+    groups_names=[]
+    for item in ret:
+      groups_names.append(item['name'])
+    return groups_names
+  except Exception as e:
+    log.error(get_exception_traceback_descr(e))
+    return None
+
+def zabbix_get_user_groups_names(log,zapi,groups):
+  try:
     ret=zapi.usergroup.get(output='extend',groupids=groups)
     groups_names=[]
     for item in ret:
@@ -92,7 +103,27 @@ def zabbix_get_groups_names(log,zapi,groups):
     log.error(get_exception_traceback_descr(e))
     return None
 
-def zabbix_get_groups_user(log,zapi,username):
+def zabbix_get_hosts_groups_by_user(log,zapi,username):
+  try:
+    ret=zapi.user.get(output='extend',search={'alias':username})
+    if len(ret) != 1:
+      log.warning("users not one")
+      return None
+    userid=ret[0]["userid"]
+    ret=zapi.usergroup.get(output='extend',userids=[userid],selectRights=1)
+    groups=[]
+    for item in ret:
+      for g in item['rights']:
+#log.debug(json.dumps(g, indent=4, sort_keys=True,ensure_ascii=False))
+        if g["permission"]=="2" or g["permission"]=="3": # чтение или чтение+запись
+          groups.append(g['id'])
+    result=list(set(groups)) # исключаем дубли
+    return result
+  except Exception as e:
+    log.error(get_exception_traceback_descr(e))
+    return None
+
+def zabbix_get_user_groups_by_user(log,zapi,username):
   try:
     ret=zapi.user.get(output='extend',search={'alias':username})
     if len(ret) != 1:
@@ -164,9 +195,9 @@ def get_default_groups(log,client,room,user,zapi):
     groups=[59] # по-умолчанию - ВЭФ ИБП
     zabbix_login=mbl.get_env(user,"zabbix_login")
     if zabbix_login!=None:
-      groups=zabbix_get_groups_user(log,zapi,zabbix_login)
+      groups=zabbix_get_hosts_groups_by_user(log,zapi,zabbix_login)
       if groups==None:
-        log.error("error zabbix_get_groups_user('%s')"%zabbix_login)
+        log.error("error zabbix_get_hosts_groups_by_user('%s')"%zabbix_login)
         mbl.bot_fault(log,client,room)
         mbl.go_to_main_menu(log,logic,client,room,user)
         return None
@@ -198,9 +229,9 @@ def zabbix_show_stat(log,logic,client,room,user,data,source_message,cmd):
       mbl.go_to_main_menu(log,logic,client,room,user)
       return False
 
-    groups_names=zabbix_get_groups_names(log,zapi,groups)
+    groups_names=zabbix_get_hosts_groups_names(log,zapi,groups)
     if groups_names==None:
-      log.debug("error zabbix_get_groups_names() - return to main menu")
+      log.debug("error zabbix_get_hosts_groups_names() - return to main menu")
       mbl.bot_fault(log,client,room)
       mbl.go_to_main_menu(log,logic,client,room,user)
       return False
@@ -246,7 +277,7 @@ def zabbix_show_stat(log,logic,client,room,user,data,source_message,cmd):
     for name in groups_names:
       text+=u"<li>%s</li> "%name
 
-    text+="""<p><strong>Список проблем для выбранных групп, сгруппированных по важности:</strong></p>
+    text+="""</ui><br><p><strong>Список проблем для выбранных групп, сгруппированных по важности:</strong></p>
     <ui>
     """
     text+="<li>1. Критических проблем - %d шт.</li> "%sev_5_num
