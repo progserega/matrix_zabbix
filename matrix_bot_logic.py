@@ -192,11 +192,16 @@ def process_message(log,client,user,room,message,formated_message=None,format_ty
             return False
           return True
         else:
+          set_state(user,logic)
           set_env(user,"zabbix_login",zabbix_login)
+          if mblz.zabbix_update_hosts_groups_of_user(log,user) == False:
+            log.error('error save groups of user')
+            if mba.send_message(log,client,room,"error save groups of user") == False:
+              log.error("send_message() to user")
+              return False
           if mba.send_message(log,client,room,"сохранил zabbix_login '%s' для вас. Теперь вы будет получать статистику из групп, в которые входит этот пользователь\nВернулся в основное меню"%zabbix_login) == False:
             log.error("send_message() to user")
             return False
-          set_state(user,logic)
           return True
           
       if data["type"]=="zabbix_get_version":

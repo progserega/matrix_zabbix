@@ -186,6 +186,25 @@ def zabbix_get_version(log,logic,client,room,user,data,source_message,cmd):
     return False
   return True
 
+def zabbix_update_hosts_groups_of_user(log,user):
+  try:
+    groups=[59] # по-умолчанию - ВЭФ ИБП
+    zabbix_login=mbl.get_env(user,"zabbix_login")
+    if zabbix_login!=None:
+      zapi = zabbix_init(log)
+      if zapi == None:
+        log.error("zabbix_init()")
+        return False
+      groups=zabbix_get_hosts_groups_by_user(log,zapi,zabbix_login)
+      if groups==None:
+        log.error("error zabbix_get_hosts_groups_by_user('%s')"%zabbix_login)
+        return False
+    mbl.set_env(user,"zabbix_groups",groups)
+    return True
+  except Exception as e:
+    log.error(get_exception_traceback_descr(e))
+    return False
+
 def get_default_groups(log,client,room,user,zapi):
   try:
     groups=mbl.get_env(user,"zabbix_groups")
