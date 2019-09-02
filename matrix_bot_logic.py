@@ -17,6 +17,7 @@ import logging
 import time
 import json
 import os
+import traceback
 import re
 import requests
 import matrix_bot_api as mba
@@ -32,6 +33,13 @@ log = None
 logic={}
 lock = None
 memmory = {}
+
+def get_exception_traceback_descr(e):
+  tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
+  result=""
+  for msg in tb_str:
+    result+=msg
+  return result
 
 def process_message(log,client,user,room,message,formated_message=None,format_type=None,reply_to_id=None,file_url=None,file_type=None):
   global logic
@@ -334,13 +342,15 @@ def init(log,rule_file):
   global logic
   try:
     json_data=open(rule_file,"r").read()
-  except:
+  except Exception as e:
     log.error("open file")
-    return False
+    log.error(get_exception_traceback_descr(e))
+    return None
   try:
     logic = json.loads(json_data)
   except Exception as e:
     log.error("parse logic rule file: %s"%e)
+    log.error(get_exception_traceback_descr(e))
     return False
   return True
 
