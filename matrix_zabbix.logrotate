@@ -1,0 +1,10 @@
+/var/log//zabbix/matrix_send_message.log {
+    size 1M
+    rotate 5
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 zabbix zabbix
+}
+
