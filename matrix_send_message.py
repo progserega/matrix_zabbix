@@ -144,10 +144,6 @@ if __name__ == '__main__':
   log_lib.addHandler(fh)
 
   log.info("Program started")
-  if mbl.init(log,conf.matrix_bot_logic_file)==False:
-    log.error("error matrix_bot_logic.init()")
-    sys.exit(1)
-
   if main()==False:
     log.error("error main()")
     sys.exit(1)
