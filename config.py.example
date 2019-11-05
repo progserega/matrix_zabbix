@@ -15,7 +15,7 @@ zabbix_passwd="XXXXXX"
 
 #========= Global ===========
 
-log_path="matrix_zabbix_bot.log"
+log_path_bot="matrix_zabbix_bot.log"
 log_path_send_message="matrix_send_message.log"
 # how match keep backup log files:
 log_backup_count=30
