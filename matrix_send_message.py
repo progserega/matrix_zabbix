@@ -34,6 +34,10 @@ def main():
     "PROBLEM":"Проблема"\
   }
 
+  if len(sys.argv)<4:
+    log.error("need 3 param: matrix_address_to subject message_to_send")
+    sys.exit(1)
+
   zbx_to = sys.argv[1]
   zbx_subject = sys.argv[2]
   zbx_body = sys.argv[3]
