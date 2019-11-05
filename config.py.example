@@ -15,6 +15,17 @@ zabbix_passwd="XXXXXX"
 
 #========= Global ===========
 
-log_path="matrix_zabbix.log"
+log_path="matrix_zabbix_bot.log"
+log_path_send_message="matrix_send_message.log"
+# how match keep backup log files:
+log_backup_count=30
+# can be:
+# 'S' - Seconds
+# 'M' - Minutes
+# 'H' - Hours
+# 'D' - Days
+# 'W0'-'W6' - Weekday (0=Monday)
+# 'midnight' - Roll over at midnight
+log_backup_when='midnight'
 
 debug=True
