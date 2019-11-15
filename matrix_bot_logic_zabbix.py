@@ -507,10 +507,10 @@ def zabbix_show_triggers(log,logic,client,room,user,data,source_message,cmd):
 
       text+="<li>"
       text+="%d. "%index
-      text+=problem['name']
-      text+=", устройство: %s"%host['name']
-      text+=", время события: %s"%data
-      text+=", продолжительность: %s"%period
+      text+="<strong>" + problem['name'] + "</strong>"
+      text+=", <em>устройство:</em> <strong>%s</strong>"%host['name']
+      text+=", <em>время события:</em> <strong>%s</strong>"%data
+      text+=", <em>продолжительность:</em> <strong>%s</strong>"%period
       text+="</li>"
       #text+="\n"
       index+=1
