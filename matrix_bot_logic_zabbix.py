@@ -15,6 +15,7 @@
 import sys
 import logging
 import time
+import datetime
 import json
 import os
 import re
@@ -39,6 +40,77 @@ def zabbix_test(log):
 
   print("groups_names=",groups_names)
   print("groups_names len=",len(groups_names))
+
+  #Get List of problems
+  problems = zapi.problem.get(\
+      groupids=groups,\
+#groupids=[19],\
+#      hostids=[10410],\
+      output=['eventid','objectid','clock','ns','name','severity'],\
+      source=0,\
+      object=0, # тип проблем - триггеры\
+      sortfield=['eventid'], preservekeys=1,limit=100,recent=1,evaltype=0,\
+      severities=[2,3,4,5],\
+      sortorder='DESC',\
+      selectSuppressionData=['maintenanceid','suppress_until']\
+      )
+  if problems == None:
+    log.debug("error zapi.problems.get() - return to main menu")
+    return False
+
+  triggerids=[]
+  for problemid in problems:
+    problem=problems[problemid]
+    triggerids.append(problem['objectid'])
+    
+
+  #Get List of triggers
+  triggers = zapi.trigger.get(\
+      output=['priority','expression','recovery_mode','recovery_expression','comments','url'],\
+      selectHosts=['hostid'],\
+      triggerids=triggerids,\
+      monitored=1,skipDependent=1,preservekeys=1,\
+      selectItems=['itemid','hostid','name','key_','value_type','units','valuemapid']\
+      )
+  if triggers==None:
+    log.debug("error zapi.trigger.get() - return to main menu")
+    return False
+
+  hostids=[]
+  for triggerid in triggers:
+    trigger=triggers[triggerid]
+    for item in trigger['hosts']:
+      hostids.append(item['hostid'])
+
+  #Get List of hosts
+  hosts = zapi.host.get(hostids=hostids,output=['hostid','name','maintenanceid','maintenance_status','maintenance_type'])
+  if hosts==None:
+    log.debug("error zapi.host.get() - return to main menu")
+    return False
+    
+  index=1
+  for problemid in problems:
+    problem=problems[problemid]
+    triggerid=problem['objectid']
+    if triggerid not in triggers:
+#      log.debug("skip unknown trigger")
+      continue
+    trigger=triggers[triggerid]
+#    print("trigger=",trigger)
+    hostid=int(trigger['hosts'][0]['hostid'])
+#    print("hostid=%d"%hostid)
+#print("problem struct=",problems[problem])
+    host=get_host_by_id(log,hosts,hostid)
+    if host == None:
+#      log.debug("skip unknown host")
+      print("hosts=",hosts)
+      continue
+    data=get_time_str_from_unix_time(problem['clock'])
+    period=get_period_str_from_ns(problem['clock'])
+    print("номер: %d, дата наступления события: %s (продолжительность: %s), описание: '%s', хост: '%s'"%(index,data,period,problem['name'],host['name']))
+    index+=1
+  print("num problems=%d"%len(problems))
+
   return True
   for item in problems:
     log.debug(json.dumps(item, indent=4, sort_keys=True,ensure_ascii=False))
@@ -55,6 +127,22 @@ def zabbix_test(log):
   ret=zapi.usergroup.get(output='extend',userids=[userid])
   print("ret=",ret)
   return True
+
+def get_period_str_from_ns(clock):
+  now = datetime.datetime.now()
+  begin = datetime.datetime.fromtimestamp(int(clock))
+  delta= now - begin
+  line = re.sub(r"\.[0-9]+$","",str(delta)) # убираем доли секунд
+  return line
+
+def get_time_str_from_unix_time(clock):
+  return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(clock)))
+
+def get_host_by_id(log,hosts,hostid):
+  for host in hosts:
+    if int(host['hostid'])==int(hostid):
+      return host
+  return None
 
 def zabbix_get_problems_of_groups(log,zapi,groups):
   try:
@@ -312,7 +400,7 @@ def zabbix_show_stat(log,logic,client,room,user,data,source_message,cmd):
   except Exception as e:
     log.error(get_exception_traceback_descr(e))
     return False
-     
+
 def zabbix_show_triggers(log,logic,client,room,user,data,source_message,cmd):
   try:
     log.info("zabbix_show_triggers()")
@@ -341,10 +429,52 @@ def zabbix_show_triggers(log,logic,client,room,user,data,source_message,cmd):
       log.error("send_notice() to user %s"%user)
       return False
 
-    #Get List of available groups
-    triggers = zapi.trigger.get(groupids=groups,only_true="1",active="1",min_severity=zabbix_priority,output="extend",selectFunctions="extend",expandDescription="True")
+    #Get List of problems
+    problems = zapi.problem.get(\
+        groupids=groups,\
+        output=['eventid','objectid','clock','ns','name','severity'],\
+        source=0,\
+        object=0, # тип проблем - триггеры\
+        sortfield=['eventid'], preservekeys=1,limit=100,recent=1,evaltype=0,\
+        severities=zabbix_priority,\
+        sortorder='DESC',\
+        selectSuppressionData=['maintenanceid','suppress_until']\
+        )
+    if problems == None:
+      log.error("error zapi.problems.get() - return to main menu")
+      mbl.bot_fault(log,client,room)
+      mbl.go_to_main_menu(log,logic,client,room,user)
+      return False
+
+    triggerids=[]
+    for problemid in problems:
+      problem=problems[problemid]
+      triggerids.append(problem['objectid'])
+
+    #Get List of triggers
+    triggers = zapi.trigger.get(\
+        output=['priority','expression','recovery_mode','recovery_expression','comments','url'],\
+        selectHosts=['hostid'],\
+        triggerids=triggerids,\
+        monitored=1,skipDependent=1,preservekeys=1,\
+        selectItems=['itemid','hostid','name','key_','value_type','units','valuemapid']\
+        )
     if triggers==None:
-      log.debug("error zapi.trigger.get() - return to main menu")
+      log.error("error zapi.trigger.get() - return to main menu")
+      mbl.bot_fault(log,client,room)
+      mbl.go_to_main_menu(log,logic,client,room,user)
+      return False
+
+    hostids=[]
+    for triggerid in triggers:
+      trigger=triggers[triggerid]
+      for item in trigger['hosts']:
+        hostids.append(item['hostid'])
+
+    #Get List of hosts
+    hosts = zapi.host.get(hostids=hostids,output=['hostid','name','maintenanceid','maintenance_status','maintenance_type'])
+    if hosts==None:
+      log.error("error zapi.host.get() - return to main menu")
       mbl.bot_fault(log,client,room)
       mbl.go_to_main_menu(log,logic,client,room,user)
       return False
@@ -359,16 +489,31 @@ def zabbix_show_triggers(log,logic,client,room,user,data,source_message,cmd):
     <ui>
     """%priority
     index=1
-    for trigger in triggers:
-      if trigger["priority"] != zabbix_priority:
+    for problemid in problems:
+      problem=problems[problemid]
+      triggerid=problem['objectid']
+      if triggerid not in triggers:
         continue
+      trigger=triggers[triggerid]
+      hostid=int(trigger['hosts'][0]['hostid'])
+      host=get_host_by_id(log,hosts,hostid)
+      if host == None:
+#log.debug("skip unknown host")
+#        log.debug(hosts)
+        continue
+      data=get_time_str_from_unix_time(problem['clock'])
+      period=get_period_str_from_ns(problem['clock'])
+#  print("номер: %d, дата наступления события: %s (продолжительность: %s), описание: '%s', хост: '%s'"%(index,data,period,problem['name'],host['name']))
+
       text+="<li>"
       text+="%d. "%index
-      text+=trigger['description']
+      text+=problem['name']
+      text+=" (%s)"%host['name']
+      text+=" - %s"%data
+      text+=" (%s)"%period
       text+="</li>"
       #text+="\n"
       index+=1
-      #print(trigger)
     text+="</ui>"
     if mba.send_html(log,client,room,text) == False:
       log.error("send_html() to user %s"%user)
