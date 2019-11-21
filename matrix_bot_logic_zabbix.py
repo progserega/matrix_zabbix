@@ -35,7 +35,6 @@ def zabbix_test(log):
 
   # группы пользователя:
   print("группы пользователя semenov_sv:")
-#groups=zabbix_get_hosts_groups_by_user(log,zapi,"semenov_sv")
   groups=zabbix_get_user_groups_by_user(log,zapi,"semenov_sv")
   print("groups=",groups)
   print("groups len=",len(groups))
@@ -213,13 +212,12 @@ def zabbix_get_hosts_groups_by_user(log,zapi,username):
       return None
     userid=int(ret[0]["userid"])
     log.debug("userid of %s = %d"%(username, userid))
-#ret=zapi.usergroup.get(output=['usrgrpid'],userids=userid,selectRights=True)
     ret=zapi.usergroup.get(userids=userid,selectRights="yes")
-    print(ret)
-    sys.exit(0)
     groups=[]
-    for item in ret:
-      groups.append(item['usrgrpid'])
+    for user_group in ret:
+      for host_group in user_group['rights']:
+        if host_group['permission'] != 0: # не запрещён доступ
+          groups.append(host_group['id'])
     result=list(set(groups)) # исключаем дубли
     return result
   except Exception as e:
