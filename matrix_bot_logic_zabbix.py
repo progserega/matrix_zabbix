@@ -33,6 +33,19 @@ def zabbix_test(log):
     log.error("zabbix_init()")
     return False
 
+  # группы пользователя:
+  print("группы пользователя semenov_sv:")
+#groups=zabbix_get_hosts_groups_by_user(log,zapi,"semenov_sv")
+  groups=zabbix_get_user_groups_by_user(log,zapi,"semenov_sv")
+  print("groups=",groups)
+  print("groups len=",len(groups))
+  groups_names=zabbix_get_user_groups_names(log,zapi,groups)
+
+  print("groups_names=",groups_names)
+  print("groups_names len=",len(groups_names))
+
+  # группы хостов пользователя:
+  print("группы хостов пользователя semenov_sv, к которым он имеет доступ:")
   groups=zabbix_get_hosts_groups_by_user(log,zapi,"semenov_sv")
   print("groups=",groups)
   print("groups len=",len(groups))
@@ -40,6 +53,7 @@ def zabbix_test(log):
 
   print("groups_names=",groups_names)
   print("groups_names len=",len(groups_names))
+  sys.exit(0)
 
   #Get List of problems
   problems = zapi.problem.get(\
@@ -182,10 +196,10 @@ def zabbix_get_hosts_groups_names(log,zapi,groups):
 
 def zabbix_get_user_groups_names(log,zapi,groups):
   try:
-    ret=zapi.usergroup.get(output='extend',groupids=groups)
-    groups_names=[]
+    ret=zapi.usergroup.get(output=['usrgrpid','name'],usrgrpids=groups)
+    groups_names={}
     for item in ret:
-      groups_names.append(item['name'])
+      groups_names[item['usrgrpid']]=item['name']
     return groups_names
   except Exception as e:
     log.error(get_exception_traceback_descr(e))
@@ -197,14 +211,15 @@ def zabbix_get_hosts_groups_by_user(log,zapi,username):
     if len(ret) != 1:
       log.warning("users not one")
       return None
-    userid=ret[0]["userid"]
-    ret=zapi.usergroup.get(output='extend',userids=[userid],selectRights=1)
+    userid=int(ret[0]["userid"])
+    log.debug("userid of %s = %d"%(username, userid))
+#ret=zapi.usergroup.get(output=['usrgrpid'],userids=userid,selectRights=True)
+    ret=zapi.usergroup.get(userids=userid,selectRights="yes")
+    print(ret)
+    sys.exit(0)
     groups=[]
     for item in ret:
-      for g in item['rights']:
-#log.debug(json.dumps(g, indent=4, sort_keys=True,ensure_ascii=False))
-        if g["permission"]=="2" or g["permission"]=="3": # чтение или чтение+запись
-          groups.append(g['id'])
+      groups.append(item['usrgrpid'])
     result=list(set(groups)) # исключаем дубли
     return result
   except Exception as e:
@@ -217,12 +232,14 @@ def zabbix_get_user_groups_by_user(log,zapi,username):
     if len(ret) != 1:
       log.warning("users not one")
       return None
-    userid=ret[0]["userid"]
-    ret=zapi.usergroup.get(output='extend',userids=[userid])
+    userid=int(ret[0]["userid"])
+    log.debug("userid of %s = %d"%(username, userid))
+    ret=zapi.usergroup.get(output=['usrgrpid'],userids=userid)
     groups=[]
     for item in ret:
       groups.append(item['usrgrpid'])
-    return groups
+    result=list(set(groups)) # исключаем дубли
+    return result
   except Exception as e:
     log.error(get_exception_traceback_descr(e))
     return None
