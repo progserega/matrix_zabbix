@@ -472,27 +472,9 @@ def main():
     #client.listen_forever(timeout_ms=30000, exception_handler=exception_handler,bad_sync_timeout=5)
 
     while True:
-      #log.debug("try lock before main loop")
-      ##################FIXME
-      log.debug("new step")
+      ##################
+      #log.debug("new step")
       time.sleep(30)
-      continue
-      ##################FIXME
-      db_con=connect_to_db()
-      if db_con == None:
-        log.error("connect_to_db()")
-        log.info("wait 120 seconds for reconnect...")
-        time.sleep(120)
-        continue
-      cur=db_con["cur"]
-      con=db_con["con"]
-
-      if update_users_without_rooms(db_con) == False:
-        log.error("update_users_without_rooms()")
-      con.close()
-#      log.debug("new step")
-      time.sleep(30)
-
 
 if __name__ == '__main__':
   log=logging.getLogger("matrix_disp_bot")
