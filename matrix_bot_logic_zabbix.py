@@ -394,14 +394,11 @@ def zabbix_show_stat(log,logic,client,room,user,data,source_message,cmd):
     if zabbix_login == None:
       zabbix_login="не выбрано"
     text="<p>Текущий пользователь: <strong>%s</strong></p>"%zabbix_login
-    text+="""<p><strong>Список текущих групп:</strong></p>
-    <ol>"""
+    text+="<p><strong>Список текущих групп:</strong></p><ol>"
     for name in groups_names:
-      text+=u"<li>%s</li> "%name
+      text+="<li>%s</li> "%name
 
-    text+="""</ol><br><p><strong>Список проблем для выбранных групп, сгруппированных по важности:</strong></p>
-    <ol>
-    """
+    text+="</ol><br><p><strong>Список проблем для выбранных групп, сгруппированных по важности:</strong></p><ol>"
     text+="<li>1. Критических проблем - %d шт.</li> "%sev_5_num
     text+="<li>2. Важных проблем - %d шт.</li> "%sev_4_num
     text+="<li>3. Средних проблем - %d шт.</li> "%sev_3_num
@@ -500,9 +497,7 @@ def zabbix_show_triggers(log,logic,client,room,user,data,source_message,cmd):
     elif zabbix_priority == "4":
       priority=u"важного"
 
-    text=u"""<p>Список активных триггеров <strong>%s</strong> уровня:</p>
-    <ol>
-    """%priority
+    text="<p>Список активных триггеров <strong>%s</strong> уровня:</p><ol>"%priority
     index=1
     for problemid in problems:
       problem=problems[problemid]
