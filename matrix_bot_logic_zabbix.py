@@ -283,11 +283,13 @@ def zabbix_get_version(log,logic,client,room,user,data,source_message,cmd):
       log.error("send_message() to user")
       mbl.bot_fault(log,client,room)
       return False
-    mbl.go_to_main_menu(log,logic,client,room,user)
+    if mba.send_notice(log,client,room,u"возвращаюсь в начальное меню. Отправьте 'помощь' или '1' для получения справки.") == False:
+      log.error("send_notice() to user %s"%user)
+    mbl.set_state(user,logic)
+    return True
   except Exception as e:
     log.error(get_exception_traceback_descr(e))
     return False
-  return True
 
 def zabbix_update_hosts_groups_of_user(log,user):
   try:
@@ -370,7 +372,9 @@ def zabbix_show_groups(log,logic,client,room,user,data,source_message,cmd):
       log.error("send_html() to user %s"%user)
       return False
     # Завершаем текущий этап и переходим в главное меню:
-    mbl.go_to_main_menu(log,logic,client,room,user)
+    if mba.send_notice(log,client,room,u"возвращаюсь в начальное меню. Отправьте 'помощь' или '1' для получения справки.") == False:
+      log.error("send_notice() to user %s"%user)
+    mbl.set_state(user,logic)
     return True
   except Exception as e:
     log.error(get_exception_traceback_descr(e))
