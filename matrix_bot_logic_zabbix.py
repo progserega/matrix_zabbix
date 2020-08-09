@@ -395,17 +395,17 @@ def zabbix_show_stat(log,logic,client,room,user,data,source_message,cmd):
       zabbix_login="не выбрано"
     text="<p>Текущий пользователь: <strong>%s</strong></p>"%zabbix_login
     text+="""<p><strong>Список текущих групп:</strong></p>
-    <ui>"""
+    <ol>"""
     for name in groups_names:
       text+=u"<li>%s</li> "%name
 
-    text+="""</ui><br><p><strong>Список проблем для выбранных групп, сгруппированных по важности:</strong></p>
-    <ui>
+    text+="""</ol><br><p><strong>Список проблем для выбранных групп, сгруппированных по важности:</strong></p>
+    <ol>
     """
     text+="<li>1. Критических проблем - %d шт.</li> "%sev_5_num
     text+="<li>2. Важных проблем - %d шт.</li> "%sev_4_num
     text+="<li>3. Средних проблем - %d шт.</li> "%sev_3_num
-    text+="</ui>"
+    text+="</ol>"
     if mba.send_html(log,client,room,text) == False:
       log.error("send_html() to user %s"%user)
       return False
@@ -501,7 +501,7 @@ def zabbix_show_triggers(log,logic,client,room,user,data,source_message,cmd):
       priority=u"важного"
 
     text=u"""<p>Список активных триггеров <strong>%s</strong> уровня:</p>
-    <ui>
+    <ol>
     """%priority
     index=1
     for problemid in problems:
@@ -529,7 +529,7 @@ def zabbix_show_triggers(log,logic,client,room,user,data,source_message,cmd):
       text+="</li>"
       #text+="\n"
       index+=1
-    text+="</ui>"
+    text+="</ol>"
     if mba.send_html(log,client,room,text) == False:
       log.error("send_html() to user %s"%user)
       return False
