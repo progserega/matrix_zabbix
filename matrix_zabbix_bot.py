@@ -301,7 +301,7 @@ def on_message(event):
                   file_type=None\
                 ) == False:
                 log.error("error process command: '%s'"%event['content']['body'])
-                mba.send_message(log,client,event['room_id'],"Внутренняя бота - обратитесь к разработчику")
+                mba.send_message(log,client,event['room_id'],"Внутренняя ошибка бота (mbl.process_message() == False) - обратитесь к разработчику")
                 return False
         elif event['content']['msgtype'] == "m.image":
           try:

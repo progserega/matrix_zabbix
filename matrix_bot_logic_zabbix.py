@@ -369,8 +369,8 @@ def zabbix_show_groups(log,logic,client,room,user,data,source_message,cmd):
     if mba.send_html(log,client,room,text) == False:
       log.error("send_html() to user %s"%user)
       return False
-    # Завершаем текущий этап и ждём ответа от пользователя:
-    mbl.set_state(user,data["answer"])
+    # Завершаем текущий этап и переходим в главное меню:
+    mbl.go_to_main_menu(log,logic,client,room,user)
     return True
   except Exception as e:
     log.error(get_exception_traceback_descr(e))
