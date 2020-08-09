@@ -216,6 +216,10 @@ def process_message(log,client,user,room,message,formated_message=None,format_ty
         log.debug("message=%s"%message)
         log.debug("cmd=%s"%cmd)
         return mblz.zabbix_get_version(log,logic,client,room,user,data,message,cmd)
+      if data["type"]=="zabbix_show_groups":
+        log.debug("message=%s"%message)
+        log.debug("cmd=%s"%cmd)
+        return mblz.zabbix_show_groups(log,logic,client,room,user,data,message,cmd)
       if data["type"]=="zabbix_show_stat":
         log.debug("message=%s"%message)
         log.debug("cmd=%s"%cmd)

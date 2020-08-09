@@ -11,10 +11,6 @@
     "message_type":"text",
     "type":"sys_cmd_cancel"
   },
-  "version":{
-    "aliases":["4","zabbix","ver","версия"],
-    "type":"zabbix_get_version"
-  },
   "имя":{
     "aliases":["2","name"],
     "message":"<strong>Настройка фильтрации</strong><br>Введите ваш login в системе Zabbix, чтобы робот отображал текущие проблемы для вас",
@@ -44,5 +40,13 @@
           "type":"zabbix_show_triggers"
         }
       }
-    }
+    },
+  "группы":{
+    "aliases":["4","groups","права"],
+    "type":"zabbix_show_groups"
+  },
+  "version":{
+    "aliases":["5","zabbix","ver","версия"],
+    "type":"zabbix_get_version"
+  }
 }

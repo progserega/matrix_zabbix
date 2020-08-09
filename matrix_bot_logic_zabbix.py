@@ -333,9 +333,9 @@ def get_default_groups(log,client,room,user,zapi):
     log.error(get_exception_traceback_descr(e))
     return False
 
-def zabbix_show_stat(log,logic,client,room,user,data,source_message,cmd):
+def zabbix_show_groups(log,logic,client,room,user,data,source_message,cmd):
   try:
-    log.info("zabbix_show_triggers()")
+    log.info("zabbix_show_groups()")
 
     zapi = zabbix_init(log)
     if zapi == None:
@@ -354,6 +354,42 @@ def zabbix_show_stat(log,logic,client,room,user,data,source_message,cmd):
     groups_names=zabbix_get_hosts_groups_names(log,zapi,groups)
     if groups_names==None:
       log.debug("error zabbix_get_hosts_groups_names() - return to main menu")
+      mbl.bot_fault(log,client,room)
+      mbl.go_to_main_menu(log,logic,client,room,user)
+      return False
+
+    zabbix_login=mbl.get_env(user,"zabbix_login")
+    if zabbix_login == None:
+      zabbix_login="не выбрано"
+    text="<p>Текущий пользователь: <strong>%s</strong></p>"%zabbix_login
+    text+="<p><strong>Список текущих групп:</strong></p><ol>"
+    for name in groups_names:
+      text+="<li>%s</li> "%name
+    text+="</ol>"
+    if mba.send_html(log,client,room,text) == False:
+      log.error("send_html() to user %s"%user)
+      return False
+    # Завершаем текущий этап и ждём ответа от пользователя:
+    mbl.set_state(user,data["answer"])
+    return True
+  except Exception as e:
+    log.error(get_exception_traceback_descr(e))
+    return False
+
+def zabbix_show_stat(log,logic,client,room,user,data,source_message,cmd):
+  try:
+    log.info("zabbix_show_triggers()")
+
+    zapi = zabbix_init(log)
+    if zapi == None:
+      log.error("zabbix_init()")
+      mbl.bot_fault(log,client,room)
+      mbl.go_to_main_menu(log,logic,client,room,user)
+      return False
+
+    groups=get_default_groups(log,client,room,user,zapi)
+    if groups==None:
+      log.debug("error get_default_groups() - return to main menu")
       mbl.bot_fault(log,client,room)
       mbl.go_to_main_menu(log,logic,client,room,user)
       return False
@@ -394,14 +430,10 @@ def zabbix_show_stat(log,logic,client,room,user,data,source_message,cmd):
     if zabbix_login == None:
       zabbix_login="не выбрано"
     text="<p>Текущий пользователь: <strong>%s</strong></p>"%zabbix_login
-    text+="<p><strong>Список текущих групп:</strong></p><ol>"
-    for name in groups_names:
-      text+="<li>%s</li> "%name
-
-    text+="</ol><br><p><strong>Список проблем для выбранных групп, сгруппированных по важности:</strong></p><ol>"
-    text+="<li>1. Критических проблем - %d шт.</li> "%sev_5_num
-    text+="<li>2. Важных проблем - %d шт.</li> "%sev_4_num
-    text+="<li>3. Средних проблем - %d шт.</li> "%sev_3_num
+    text+="<p><strong>Список проблем для выбранных групп, сгруппированных по важности:</strong></p><ol>"
+    text+="<li>Критических проблем - %d шт.</li> "%sev_5_num
+    text+="<li>Важных проблем - %d шт.</li> "%sev_4_num
+    text+="<li>Средних проблем - %d шт.</li> "%sev_3_num
     text+="</ol>"
     if mba.send_html(log,client,room,text) == False:
       log.error("send_html() to user %s"%user)
