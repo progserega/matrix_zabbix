@@ -430,7 +430,7 @@ def zabbix_show_stat(log,logic,client,room,user,data,source_message,cmd):
     if zabbix_login == None:
       zabbix_login="не выбрано"
     text="<p>Текущий пользователь: <strong>%s</strong></p>"%zabbix_login
-    text+="<p><strong>Список проблем для выбранных групп, сгруппированных по важности:</strong></p><ol>"
+    text+="<p><strong>Список проблем для выбранных групп, сгруппированных по важности:</strong></p><br><ol>"
     text+="<li>Критических проблем - %d шт.</li> "%sev_5_num
     text+="<li>Важных проблем - %d шт.</li> "%sev_4_num
     text+="<li>Средних проблем - %d шт.</li> "%sev_3_num
@@ -530,7 +530,6 @@ def zabbix_show_triggers(log,logic,client,room,user,data,source_message,cmd):
       priority=u"важного"
 
     text="<p>Список активных триггеров <strong>%s</strong> уровня:</p><ol>"%priority
-    index=1
     for problemid in problems:
       problem=problems[problemid]
       triggerid=problem['objectid']
@@ -548,14 +547,11 @@ def zabbix_show_triggers(log,logic,client,room,user,data,source_message,cmd):
 #  print("номер: %d, дата наступления события: %s (продолжительность: %s), описание: '%s', хост: '%s'"%(index,data,period,problem['name'],host['name']))
 
       text+="<li>"
-      text+="%d. "%index
       text+="<strong>" + problem['name'] + "</strong>"
       text+=", <em>устройство:</em> <strong>%s</strong>"%host['name']
       text+=", <em>время события:</em> <strong>%s</strong>"%data
       text+=", <em>продолжительность:</em> <strong>%s</strong>"%period
       text+="</li>"
-      #text+="\n"
-      index+=1
     text+="</ol>"
     if mba.send_html(log,client,room,text) == False:
       log.error("send_html() to user %s"%user)
