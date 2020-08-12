@@ -79,7 +79,6 @@ def main():
     zbx_body = sys.argv[3]
 
     log.debug("zbx_to=%s"%zbx_to)
-    log.debug("zbx_problem_uid=%s"%zbx_problem_uid)
     log.debug("zbx_subject=%s"%zbx_subject)
     log.debug("zbx_body=%s"%zbx_body)
 
@@ -90,7 +89,8 @@ def main():
       lines = zbx_body.split('\n')
       for line in lines:
         if "UID проблемы" in line:
-          zbx_problem_uid = int(line.split(':')[1].strip())
+          zbx_problem_uid = line.split(':')[1].strip()
+          log.debug("success extract zbx_problem_uid='%s' from zbx_body"%zbx_problem_uid)
           break
     except Exception as e:
       log.warning(get_exception_traceback_descr(e))
