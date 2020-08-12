@@ -15,7 +15,7 @@ config=None
 
 def loadConfig(file_name):
   try:
-    if not os.path.exists(path):
+    if not os.path.exists(file_name):
       print("no file: %s"%file_name)
       return None
     config = configparser.ConfigParser()
