@@ -103,8 +103,8 @@ def main():
       "address_im":zbx_to,\
       "sender_uniq_id":zbx_problem_uid\
       }
-    if lower(config_edit_support) == "yes" or\
-       lower(config_edit_support) == "true":
+    if config_edit_support.lower() == "yes" or\
+       config_edit_support.lower() == "true":
       json_data["edit_previouse"] = True
 
     ret = send_json(config_api_url,json_data)
