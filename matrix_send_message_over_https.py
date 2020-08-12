@@ -74,11 +74,10 @@ def main():
     zbx_subject = sys.argv[3]
     zbx_body = sys.argv[4]
 
-    if conf.debug:
-      log.debug("zbx_to=%s"%zbx_to)
-      log.debug("zbx_problem_uid=%s"%zbx_problem_uid)
-      log.debug("zbx_subject=%s"%zbx_subject)
-      log.debug("zbx_body=%s"%zbx_body.decode)
+    log.debug("zbx_to=%s"%zbx_to)
+    log.debug("zbx_problem_uid=%s"%zbx_problem_uid)
+    log.debug("zbx_subject=%s"%zbx_subject)
+    log.debug("zbx_body=%s"%zbx_body.decode)
 
     keys=zbx_subject.split(';')
     if len(keys) > 1:
