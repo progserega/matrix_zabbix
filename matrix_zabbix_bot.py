@@ -273,7 +273,7 @@ def on_message(event):
     elif event['type'] == "m.room.message":
         if event['content']['msgtype'] == "m.text":
             reply_to_id=None
-            if "m.relates_to" in  event['content']:
+            if "m.relates_to" in  event['content'] and "m.in_reply_to" in event['content']["m.relates_to"]:
               # это ответ на сообщение:
               try:
                 reply_to_id=event['content']['m.relates_to']['m.in_reply_to']['event_id']
