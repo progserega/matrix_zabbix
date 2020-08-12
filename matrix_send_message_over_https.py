@@ -91,7 +91,7 @@ def main():
     text=None
     try:
       text="""%(zbx_subject)s
-    %(zbx_body)s
+%(zbx_body)s
     """%{"zbx_subject":zbx_subject, "zbx_body":zbx_body}
     except Exception as e:
       log.error(get_exception_traceback_descr(e))
