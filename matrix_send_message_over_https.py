@@ -8,12 +8,16 @@ import traceback
 import logging
 from logging import handlers
 import configparser
+import os
 
 log = None
 config=None
 
 def loadConfig(file_name):
   try:
+    if not os.path.exists(path):
+      print("no file: %s"%file_name)
+      return None
     config = configparser.ConfigParser()
     config.read(file_name)
     return config
@@ -125,9 +129,10 @@ def main():
     sys.exit(5)
 
 if __name__ == '__main__':
-  config=loadConfig("matrix_send_message_over_https.ini")
+  config_path = "/etc/zabbix/matrix_send_message_over_https.ini"
+  config=loadConfig(config_path)
   if config == None:
-    print("can not open config file matrix_send_message_over_https.ini")
+    print("can not open config file at path: %s"%config_path)
     sys.exit(1)
   log=logging.getLogger("matrix_send_message_over_https")
   if config["logging"]["debug"].lower()=="yes":
