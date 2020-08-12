@@ -77,7 +77,7 @@ def main():
     log.debug("zbx_to=%s"%zbx_to)
     log.debug("zbx_problem_uid=%s"%zbx_problem_uid)
     log.debug("zbx_subject=%s"%zbx_subject)
-    log.debug("zbx_body=%s"%zbx_body.decode)
+    log.debug("zbx_body=%s"%zbx_body)
 
     keys=zbx_subject.split(';')
     if len(keys) > 1:
