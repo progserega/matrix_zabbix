@@ -114,8 +114,7 @@ def main():
       sys.exit(3)
 
     if 'status' in ret and ret["status"]=='success' and 'message_id' in ret:
-      if conf.debug:
-        log.info("SUCCESS send message. Message ID=%s"%ret["message_id"])
+      log.info("SUCCESS send message. Message ID=%s"%ret["message_id"])
     else:
       log.error("ERROR send message!")
       if 'description' in ret:
