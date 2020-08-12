@@ -70,19 +70,31 @@ def main():
     config_api_key = config["sender_api"]["api_key"]
     config_edit_support = config["sendig_options"]["edit_support"]
 
-    if len(sys.argv)<5:
-      log.error("need 4 param: matrix_address_to problem_uid subject message_to_send")
+    if len(sys.argv)<4:
+      log.error("need 4 param: matrix_address_to subject message_to_send")
       sys.exit(1)
 
     zbx_to = sys.argv[1]
-    zbx_problem_uid = sys.argv[2]
-    zbx_subject = sys.argv[3]
-    zbx_body = sys.argv[4]
+    zbx_subject = sys.argv[2]
+    zbx_body = sys.argv[3]
 
     log.debug("zbx_to=%s"%zbx_to)
     log.debug("zbx_problem_uid=%s"%zbx_problem_uid)
     log.debug("zbx_subject=%s"%zbx_subject)
     log.debug("zbx_body=%s"%zbx_body)
+
+    # находим UID проблемы, т.к. передать его из zabbix-а не получается через параметр
+    # https://www.zabbix.com/documentation/3.0/ru/manual/config/notifications/media/script
+    zbx_problem_uid = None
+    try:
+      lines = zbx_body.split('\n')
+      for line in lines:
+        if "UID проблемы" in line:
+          zbx_problem_uid = int(line.split(':')[1].strip())
+          break
+    except Exception as e:
+      log.warning(get_exception_traceback_descr(e))
+      log.warning("get zbx_problem_uid from zbx_body - skip set zbx_problem_uid")
 
     keys=zbx_subject.split(';')
     if len(keys) > 1:
@@ -104,9 +116,12 @@ def main():
       "api_key":config_api_key,\
       "message":text,\
       "type":"text",\
-      "address_im":zbx_to,\
-      "sender_uniq_id":zbx_problem_uid\
+      "address_im":zbx_to\
       }
+
+    if zbx_problem_uid is not None:
+      json_data["sender_uniq_id"]=zbx_problem_uid
+
     if config_edit_support.lower() == "yes" or\
        config_edit_support.lower() == "true":
       json_data["edit_previouse"] = True
