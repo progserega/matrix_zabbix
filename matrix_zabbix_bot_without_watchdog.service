@@ -15,18 +15,6 @@ RestartSec=1
 #WatchdogSec=1m
 LimitNOFILE=32768
 
-# watchdog:
-WatchdogSec=5m
-Restart=on-failure
-# предельное количество попыток перезапуска:
-StartLimitBurst=30
-# интервал времени, в течение которого они подсчитываются
-StartLimitInterval=60min
-# юнит, который запустится при сбое этого юнита:
-#OnFailure=
-# что делать, если слишком часто сбоит: none, reboot, reboot-force и reboot-immediate
-#StartLimitAction=none
-
 User=zabbix
 
 # Hardening

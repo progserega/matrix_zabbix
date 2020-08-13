@@ -21,9 +21,9 @@ import os
 import pickle
 import re
 import threading
-#import MySQLdb as mdb
 import traceback
 import requests
+import systemd_watchdog
 
 from matrix_client.client import MatrixClient
 from matrix_client.api import MatrixRequestError
@@ -38,6 +38,8 @@ client = None
 log = None
 data={}
 lock = None
+wd = None
+wd_timeout = 0
 
 def get_exception_traceback_descr(e):
   tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
@@ -266,6 +268,13 @@ def on_message(event):
     global client
     global log
     global lock
+    global wd
+    global wd_timeout
+
+    # watchdog notify:
+    if conf.use_watchdog:
+      wd.notify()
+
     log.debug("%s"%(json.dumps(event, indent=4, sort_keys=True,ensure_ascii=False)))
     if event['type'] == "m.room.member":
         if event['content']['membership'] == "join":
@@ -334,44 +343,16 @@ def on_message(event):
 
 def on_event(event):
     global log
-    db_con=None
-    cur=None
-    con=None
+    global wd
+    global wd_timeout
+
+    # watchdog notify:
+    if conf.use_watchdog:
+      wd.notify()
 
     log.debug("event:")
     log.debug(event)
     log.debug(json.dumps(event, indent=4, sort_keys=True,ensure_ascii=False))
-    for i in range(1,10):
-      db_con=connect_to_db()
-      if db_con == None:
-        log.error("on_event(): connect_to_db()")
-        log.info("on_event(): wait 120 seconds for reconnect...")
-        time.sleep(120)
-        continue
-      else:
-        break
-    if db_con==None:
-      log.error("on_event(): failed connect_to_db()")
-      log.error("process on_event - failed: can not connect to mysql in connect_to_db()")
-      return False
-    else:
-      cur=db_con["cur"]
-      con=db_con["con"]
-      
-
-    if event['type'] == "m.receipt":
-      for room_id in event['content']:
-        if "m.read" in event['content'][room_id]:
-          for matrix_uid in event['content'][room_id]["m.read"]:
-            time_stamp=int(int(event['content'][room_id]["m.read"][matrix_uid]["ts"])/1000)
-            time_string=time.strftime("%Y-%m-%d %T",time.localtime(time_stamp))
-            log.info(u"Пришло уведомление о прочтении польльзователем '%s' сообщений ранее: %s"%(matrix_uid,time_string))
-            if update_status_messages(db_con,room_id,matrix_uid,time_stamp) == False:
-              log.warning(u"ошибка обновления статуса о прочтении -  update_status_messages(room_id=%s, matrix_uid=%s, time_stamp=%d) == False"%(room_id,matrix_uid,time_stamp))
-              continue
-    else:
-      log.debug(event['type'])
-    con.close()
     return True
 
 
@@ -379,13 +360,12 @@ def on_invite(room, event):
     global client
     global log
 
-    if conf.debug:
-      log.debug("invite:")
-      log.debug("room_data:")
-      log.debug(room)
-      log.debug("event_data:")
-      log.debug(event)
-      log.debug(json.dumps(event, indent=4, sort_keys=True,ensure_ascii=False))
+    log.debug("invite:")
+    log.debug("room_data:")
+    log.debug(room)
+    log.debug("event_data:")
+    log.debug(event)
+    log.debug(json.dumps(event, indent=4, sort_keys=True,ensure_ascii=False))
 
     # По приглашению не вступаем с точки зрения безопасности. Только мы можем приглашать в комнаты, а не нас:
     # Просматриваем сообщения:
@@ -429,19 +409,41 @@ def matrix_connect():
 
 def exception_handler(e):
   global log
+  global wd
+  global wd_timeout
   log.error("exception_handler(): main listener thread except. He must retrying...")
   log.error(e)
-  log.info("exception_handler(): wait 5 second before retrying...")
+  if conf.use_watchdog:
+    log.info("send to watchdog error service status")
+    wd.notify_error("An irrecoverable error occured! exception_handler()")
   time.sleep(5)
+  log.info("exception_handler(): wait 5 second before programm exit...")
+  time.sleep(5)
+  log.info("sys.exit(1)")
+  sys.exit(1)
 
 def main():
     global client
     global data
     global log
     global lock
+    global wd
+    global wd_timeout
 
     con=None
     cur=None
+
+    # watchdog:
+    if conf.use_watchdog:
+      log.info("init watchdog")
+      wd = systemd_watchdog.watchdog()
+      if not wd.is_enabled:
+        # Then it's probably not running is systemd with watchdog enabled
+        log.error("Watchdog not enabled in systemdunit, but enabled in bot config!")
+        return False
+      wd.status("Starting service...")
+      wd_timeout=int(float(wd.timeout) / 1000000)
+      log.info("watchdog timeout=%d"%wd_timeout)
 
     lock = threading.RLock()
 
@@ -462,19 +464,27 @@ def main():
       sys.exit(1)
      
     client.add_listener(on_message)
-    #############FIXME
+#   функционал не используется:
 #    client.add_ephemeral_listener(on_event)
-    #############FIXME
-    client.add_invite_listener(on_invite)
+#    client.add_invite_listener(on_invite)
 
     #client.start_listener_thread()
     client.start_listener_thread(exception_handler=exception_handler)
     #client.listen_forever(timeout_ms=30000, exception_handler=exception_handler,bad_sync_timeout=5)
+    
+    # программа инициализировалась - сообщаем об этом в watchdog:
+    if conf.use_watchdog:
+      wd.ready()
+      wd.status("start main loop")
+      log.debug("watchdog send notify")
+      wd.notify()
 
     while True:
       ##################
-      #log.debug("new step")
-      time.sleep(30)
+      # watchdog notify:
+      if conf.use_watchdog:
+        wd.notify()
+      time.sleep(int(wd_timeout/2))
 
 if __name__ == '__main__':
   log=logging.getLogger("matrix_disp_bot")

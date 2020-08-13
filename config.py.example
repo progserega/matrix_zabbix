@@ -13,7 +13,12 @@ zabbix_server="http://zabbix.corp.net"
 zabbix_user="zabbix_mon"
 zabbix_passwd="XXXXXX"
 
-#========= Global ===========
+#======== Wathcdog ========
+# включить поддержку systemd-watchdog. В этом случае процесс будет отправлять уведомления в systemd и если вдруг
+# они перестанут приходить, то systemd перезапустит сервис https://pypi.org/project/systemd-watchdog/ https://www.lexpr.ru/node/513
+use_watchdog=True
+
+#========= logging: ===========
 
 log_path_bot="matrix_zabbix_bot.log"
 log_path_send_message="matrix_send_message.log"
