@@ -39,12 +39,15 @@ def send_json(url,json_data):
     time_execute=time.time()
     response = requests.post(url, json=json_data, verify=False)
     log.debug("response=%s"%response)
-    #data = response.raw      # a `bytes` object
-    response_json = response.json()
-    log.debug("response.json=%s"%response_json)
     if response.status_code != 200:
       log.error("response != 200 (OK)")
       return None
+    else:
+      log.info("send_json return code = 200 (OK)")
+    data = response.text 
+    log.debug("response.text=%s"%str(data))
+    response_json = response.json()
+    log.debug("response.json=%s"%response_json)
     log.debug("execute function time=%f"%(time.time()-time_execute))
     return response_json
   except Exception as e:
