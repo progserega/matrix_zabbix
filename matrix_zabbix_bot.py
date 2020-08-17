@@ -273,6 +273,7 @@ def on_message(event):
 
     # watchdog notify:
     if conf.use_watchdog:
+      log.debug("watchdog send notify")
       wd.notify()
 
     log.debug("%s"%(json.dumps(event, indent=4, sort_keys=True,ensure_ascii=False)))
@@ -348,6 +349,7 @@ def on_event(event):
 
     # watchdog notify:
     if conf.use_watchdog:
+      log.debug("watchdog send notify")
       wd.notify()
 
     log.debug("event:")
@@ -414,7 +416,7 @@ def exception_handler(e):
   log.error("exception_handler(): main listener thread except. He must retrying...")
   log.error(e)
   if conf.use_watchdog:
-    log.info("send to watchdog error service status")
+    log.warning("send to watchdog error service status")
     wd.notify_error("An irrecoverable error occured! exception_handler()")
   time.sleep(5)
   log.info("exception_handler(): wait 5 second before programm exit...")
@@ -483,6 +485,7 @@ def main():
       ##################
       # watchdog notify:
       if conf.use_watchdog:
+        log.debug("watchdog send notify")
         wd.notify()
       time.sleep(int(wd_timeout/2))
 
