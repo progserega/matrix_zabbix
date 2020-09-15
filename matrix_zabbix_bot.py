@@ -40,6 +40,7 @@ data={}
 lock = None
 wd = None
 wd_timeout = 0
+exit_flag = False
 
 def get_exception_traceback_descr(e):
   tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
@@ -413,6 +414,7 @@ def exception_handler(e):
   global log
   global wd
   global wd_timeout
+  global exit_flag
   log.error("exception_handler(): main listener thread except. He must retrying...")
   log.error(e)
   if conf.use_watchdog:
@@ -420,6 +422,8 @@ def exception_handler(e):
     wd.notify_error("An irrecoverable error occured! exception_handler()")
   time.sleep(5)
   log.info("exception_handler(): wait 5 second before programm exit...")
+  log.info("set exit_flag=True")
+  exit_flag = True
   time.sleep(5)
   log.info("sys.exit(1)")
   sys.exit(1)
@@ -431,6 +435,7 @@ def main():
     global lock
     global wd
     global wd_timeout
+    global exit_flag
 
     con=None
     cur=None
@@ -488,6 +493,11 @@ def main():
         log.debug("watchdog send notify")
         wd.notify()
       time.sleep(int(wd_timeout/2))
+      if exit_flag == True:
+        log.warning("got exit_flag == True - exit")
+        # выход из цикла:
+        break
+    return exit_flag
 
 if __name__ == '__main__':
   log=logging.getLogger("matrix_disp_bot")
