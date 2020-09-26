@@ -1,3 +1,7 @@
+This repo have 2 posystems:
+1. simple alert-script for zabbix for send alert evets to matrix
+2. bot, witch can answer to matrix user current situation in zabbix: how match problem now (in controlled by current user).
+
 Setup:
 
 0. pip install matrix_client
@@ -8,6 +12,12 @@ Setup:
 5. edit config.py.example - add zabbix accounts info (login and pass).
 6. In zabbix add script as send-script. And for specificied user add his room_id as params for script.
 
-for test, you may exec script manualy:
+for test send, you may exec script manualy:
 
   ./matrix_send_message.py 'matrix_room_id' 'zabbix subject' 'zabbix event body text'
+
+For run bot:
+
+  ./matrix_zabbix_bot.py
+
+or setup systemd service by ./matrix_zabbix_bot.service or ./matrix_zabbix_bot_without_watchdog.service
