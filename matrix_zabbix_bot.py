@@ -468,7 +468,7 @@ def main():
         break
     if client == None:
       log.error("matrix_connect() fault! - exit")
-      sys.exit(1)
+      return False
      
     client.add_listener(on_message)
 #   функционал не используется:
@@ -495,9 +495,9 @@ def main():
       time.sleep(int(wd_timeout/2))
       if exit_flag == True:
         log.warning("got exit_flag == True - exit")
-        # выход из цикла:
-        break
-    return exit_flag
+        # выход
+        return False
+    return True
 
 if __name__ == '__main__':
   log=logging.getLogger("matrix_disp_bot")
