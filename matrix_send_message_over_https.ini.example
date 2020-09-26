@@ -1,0 +1,24 @@
+#============ logging: ===============
+[logging]
+debug = yes
+
+log_path = matrix_send_message_over_https.log
+# how match keep backup log files:
+log_backup_count = 30
+# can be:
+# 'S' - Seconds
+# 'M' - Minutes
+# 'H' - Hours
+# 'D' - Days
+# 'W0'-'W6' - Weekday (0=Monday)
+# 'midnight' - Roll over at midnight
+log_backup_when = midnight
+
+[sender_api]
+url = https://api-zabbix-messages.corp.ru/api_add_message.cgi
+api_key = XXXXXXXXXXXXXXXXX
+
+[sendig_options]
+# если edit_support=yes, то если приходит новое сообщение но с тем же problem_uid (например первыое было "проблема", а второе "решено"),
+# то второе сообщение не шлётся как новое, а правит собою первое сообщение:
+edit_support = yes

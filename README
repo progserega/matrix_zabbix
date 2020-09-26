@@ -1,0 +1,6 @@
+pip install matrix_client
+pip install py-zabbix
+
+for autostart bot:
+cp mautrix_zabbix_bot.service /etc/systemd/system && chown zabbix /var/log/matrix -R && systemctl start mautrix_zabbix_bot.service
+

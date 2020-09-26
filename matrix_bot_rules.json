@@ -1,0 +1,52 @@
+{
+  "help":{
+    "aliases":["помощь","!h","1"],
+    "message":"<p><strong>Вас приветствует бот ZABBIX.</strong></p>\n<p>На данный момент я могу выполнять следующие команды:</p>\n <p><em>(Команды можно вводить просто как порядковый номер команды)</em></p> \n <ol>\n  <li><strong>помощь</strong> (можно набрать иначе: <strong>help</strong> или <strong>!h</strong>) - эта справка</li>\n <li><strong>имя</strong> - связать Matrix ID с zabbix-логином для получения индивидуальной статистики</li><li><strong>статистика</strong> - статистика по районам и проблемам в них</li><li><strong>группы, groups, права</strong> - отображение групп выбранного пользователя</li><li><strong>версия</strong> - версия zabbix</li></ol><p><em>Всего хорошего, с уважением служба ИТ.</em></p>",
+    "message_type":"html",
+    "type":"sys_cmd_cancel"
+  },
+  "привет":{
+    "aliases":["эй","hello","хай","прив","привет!","hello!"],
+    "message":"Привет!\nТоже рад Вас слышать!\nДля справки наберите 'помощь'.\nВсего наилучшего, с уважением служба ИТ",
+    "message_type":"text",
+    "type":"sys_cmd_cancel"
+  },
+  "имя":{
+    "aliases":["2","name"],
+    "message":"<strong>Настройка фильтрации</strong><br>Введите ваш login в системе Zabbix, чтобы робот отображал текущие проблемы для вас",
+    "message_type":"html",
+    "type":"cmd",
+    "answer":{
+      "*":{
+        "set_env":"zabbix_login",
+        "type":"zabbix_check_login"
+        }
+     }
+  },
+  "стат":{
+    "aliases":["3","статистика","stat"],
+    "type":"zabbix_show_stat",
+    "answer":{
+        "1":{
+          "set_static_keys":{"zabbix_priority":"5"},
+          "type":"zabbix_show_triggers"
+        },
+        "2":{
+          "set_static_keys":{"zabbix_priority":"4"},
+          "type":"zabbix_show_triggers"
+        },
+        "3":{
+          "set_static_keys":{"zabbix_priority":"3"},
+          "type":"zabbix_show_triggers"
+        }
+      }
+    },
+  "группы":{
+    "aliases":["4","groups","права"],
+    "type":"zabbix_show_groups"
+  },
+  "version":{
+    "aliases":["5","zabbix","ver","версия"],
+    "type":"zabbix_get_version"
+  }
+}

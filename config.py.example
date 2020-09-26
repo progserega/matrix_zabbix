@@ -1,12 +1,36 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-server="https://matrix.org"
-username="zabbix"
-password="XXXXXXXX"
+#======== MATRIX =============
+matrix_server="https://matrix.org"
+matrix_username="zabbix"
+matrix_password="XXXX"
+matrix_device_id="HSDNLQODDJ"
+matrix_bot_logic_file = "matrix_bot_rules.json"
 
-log_path="/var/log/matrix/matrix_send_message.log"
-email_server="mail.corp.ru"
-email_admin=["admin@corp.ru"]
+#======== ZABBIX =========
+zabbix_server="http://zabbix.corp.net"
+zabbix_user="zabbix_mon"
+zabbix_passwd="XXXXXX"
 
-DEBUG=True
+#======== Wathcdog ========
+# включить поддержку systemd-watchdog. В этом случае процесс будет отправлять уведомления в systemd и если вдруг
+# они перестанут приходить, то systemd перезапустит сервис https://pypi.org/project/systemd-watchdog/ https://www.lexpr.ru/node/513
+use_watchdog=True
+
+#========= logging: ===========
+
+log_path_bot="matrix_zabbix_bot.log"
+log_path_send_message="matrix_send_message.log"
+# how match keep backup log files:
+log_backup_count=30
+# can be:
+# 'S' - Seconds
+# 'M' - Minutes
+# 'H' - Hours
+# 'D' - Days
+# 'W0'-'W6' - Weekday (0=Monday)
+# 'midnight' - Roll over at midnight
+log_backup_when='midnight'
+
+debug=True

@@ -1,0 +1,48 @@
+[Unit]
+Description=ZABBIX matrix bot
+After=syslog.target network.target nss-lookup.target
+
+[Service]
+Type=notify
+#Type=forking
+ExecStartPre=/bin/true
+ExecStart=/opt/matrix_zabbix/matrix_zabbix_bot.py
+ExecReload=/bin/true
+KillSignal=SIGTERM
+TimeoutSec=30
+#Restart=on-failure
+RestartSec=1
+#WatchdogSec=1m
+LimitNOFILE=32768
+
+# watchdog:
+WatchdogSec=5m
+NotifyAccess=all
+Restart=on-failure
+# предельное количество попыток перезапуска:
+StartLimitBurst=30
+# интервал времени, в течение которого они подсчитываются
+StartLimitInterval=60min
+# юнит, который запустится при сбое этого юнита:
+#OnFailure=
+# что делать, если слишком часто сбоит: none, reboot, reboot-force и reboot-immediate
+#StartLimitAction=none
+
+User=zabbix
+
+# Hardening
+DeviceAllow=/dev/null rw
+DeviceAllow=/dev/urandom r
+ProtectHome=yes
+ProtectSystem=full
+ReadOnlyDirectories=/run
+ReadOnlyDirectories=/var
+ReadWriteDirectories=/var/log/matrix_zabbix
+ReadWriteDirectories=/var/spool/matrix_zabbix
+#CapabilityBoundingSet=CAP_SETUID CAP_SETGID CAP_NET_BIND_SERVICE
+PermissionsStartOnly=yes
+
+[Install]
+WantedBy = multi-user.target
+
+
