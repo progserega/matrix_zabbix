@@ -14,8 +14,8 @@ zabbix_user="zabbix_mon"
 zabbix_passwd="XXXXXX"
 
 #======== Wathcdog ========
-# включить поддержку systemd-watchdog. В этом случае процесс будет отправлять уведомления в systemd и если вдруг
-# они перестанут приходить, то systemd перезапустит сервис https://pypi.org/project/systemd-watchdog/ https://www.lexpr.ru/node/513
+# enable support systemd-watchdog. In this situation bot-proccess will be send events to systemd and if proccess fail -
+# systemd will be restart service: https://pypi.org/project/systemd-watchdog/ https://www.lexpr.ru/node/513
 use_watchdog=True
 
 #========= logging: ===========
