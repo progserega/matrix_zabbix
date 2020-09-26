@@ -118,7 +118,7 @@ def create_room(db_con,matrix_uid):
   log.debug("create room '%s' and ivite user '%s' to this room"%(room.room_id,matrix_uid))
 
   # шлём help в комнаату:
-  if mba.send_message(log,client,room.room_id,"Добро пожаловать в систему автоматического уведомления диспетчерских отключений АО \"ДРСК\"!")==False:
+  if mba.send_message(log,client,room.room_id,"Добро пожаловать в систему автоматического уведомления ZABBIX!")==False:
     log.error("mba.send_message()")
     return False
   return True
