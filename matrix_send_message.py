@@ -42,11 +42,11 @@ def main():
   zbx_subject = sys.argv[2]
   zbx_body = sys.argv[3]
 
-  if conf.debug:
-    log.debug(u"zbx_to=%s"%zbx_to)
-    log.debug(u"zbx_subject=%s"%zbx_subject.decode('utf8'))
-    log.debug(u"zbx_body=%s"%zbx_body.decode('utf8'))
+  log.debug(u"zbx_to=%s"%zbx_to)
+  log.debug(u"zbx_subject=%s"%zbx_subject.decode('utf8'))
+  log.debug(u"zbx_body=%s"%zbx_body.decode('utf8'))
 
+  log.debug(u"try split message")
   keys=zbx_subject.split(';')
   if len(keys) > 1:
     status=keys[0].strip()
@@ -54,8 +54,11 @@ def main():
     trigger_name=keys[2].strip()
     if status in status_types and severity in severity_types:
       zbx_subject = status + "; " + severity_types[severity] + "; " + trigger_name
-
+  log.debug("try MatrixClient()")
+  time_execute=time.time()
   client = MatrixClient(conf.matrix_server)
+  log.debug("success MatrixClient()")
+  log.debug("execute function MatrixClient() time=%f"%(time.time()-time_execute))
 
 # New user
 #token = client.register_with_password(username=conf.matrix_username, password=conf.matrix_password)
@@ -63,7 +66,11 @@ def main():
   token=None
 # Existing user
   try:
+    log.debug("try client.login()")
+    time_execute=time.time()
     token = client.login(username=conf.matrix_username, password=conf.matrix_password,device_id=conf.matrix_device_id)
+    log.debug("success client.login()")
+    log.debug("execute function client.login() time=%f"%(time.time()-time_execute))
   except MatrixRequestError as e:
     log.error(get_exception_traceback_descr(e))
     if e.code == 403:
@@ -82,7 +89,11 @@ def main():
 
   room = None
   try:
+    log.debug("try client.join_room()")
+    time_execute=time.time()
     room = client.join_room(zbx_to)
+    log.debug("success client.join_room()")
+    log.debug("execute function client.join_room() time=%f"%(time.time()-time_execute))
   except MatrixRequestError as e:
     log.error(get_exception_traceback_descr(e))
     if e.code == 400:
@@ -105,7 +116,11 @@ def main():
     sys.exit(14)
 
   try:
+    log.debug("try room.send_text()")
+    time_execute=time.time()
     ret=room.send_text(text)
+    log.debug("success room.send_text()")
+    log.debug("execute function room.send_text() time=%f"%(time.time()-time_execute))
   except MatrixRequestError as e:
     log.error(get_exception_traceback_descr(e))
     log.error("ERROR send message!")
@@ -148,7 +163,10 @@ if __name__ == '__main__':
   log_lib.addHandler(fh)
 
   log.info("Program started")
+  time_execute=time.time()
   if main()==False:
     log.error("error main()")
+    log.debug("execute function main() time=%f"%(time.time()-time_execute))
     sys.exit(1)
+  log.debug("execute function main() time=%f"%(time.time()-time_execute))
   log.info("Program exit!")
