@@ -147,7 +147,7 @@ if __name__ == '__main__':
 
   # create the logging file handler
   fh = logging.handlers.TimedRotatingFileHandler(conf.log_path_send_message, when=conf.log_backup_when, backupCount=conf.log_backup_count)
-  formatter = logging.Formatter('%(asctime)s - %(name)s - %(filename)s:%(lineno)d - %(funcName)s() %(levelname)s - %(message)s')
+  formatter = logging.Formatter('%(asctime)s - PID:%(process)d - - %(name)s - %(filename)s:%(lineno)d - %(funcName)s() %(levelname)s - %(message)s')
   fh.setFormatter(formatter)
 
   if conf.debug:
