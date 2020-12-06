@@ -1,4 +1,4 @@
-This repo have 2 posystems:
+This repo have 2 systems:
 1. simple alert-script for zabbix for send alert evets to matrix
 2. bot, witch can answer to matrix user current situation in zabbix: how match problem now (in controlled by current user).
 
