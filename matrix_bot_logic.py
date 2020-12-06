@@ -47,21 +47,6 @@ def process_message(log,client,user,room,message,formated_message=None,format_ty
   source_message=None
   source_cmd=None
 
-  # Проверяем сколько в комнате пользователей. Если более двух - то это не приватный чат и потому не отвечаем на команды:
-
-  users = client.rooms[room].get_joined_members()
-  if users == None:
-    log.error("room.get_joined_members()")
-    return False
-  users_num = len(users)
-  log.debug("in room %d users"%users_num)
-  if users_num > 2:
-    # публичная комната - не обрабатываем команды:
-    log.debug("this is public room - skip proccess_commands")
-    return True
-  else:
-    log.debug("this is private chat (2 users) - proccess commands")
-
   if reply_to_id!=None and format_type=="org.matrix.custom.html" and formated_message!=None:
     # разбираем, чтобы получить исходное сообщение и ответ
     source_message=re.sub('<mx-reply><blockquote>.*<\/a><br>','', formated_message)
@@ -70,6 +55,45 @@ def process_message(log,client,user,room,message,formated_message=None,format_ty
     log.debug("source=%s"%source_message)
     log.debug("cmd=%s"%source_cmd)
     message=source_cmd
+
+  # убираем пробелы по бокам:
+  message=message.strip()
+
+  # имя бота:
+  nick_name=client.api.get_display_name(client.user_id)
+  log.debug("nick_name=%s"%nick_name)
+
+  to_us=False
+  if re.match(r'^!*%s:* '%nick_name.lower(), message.lower()) != None:
+    to_us=True
+    # корректный формат body:
+    log.debug("remove prefix from cmd")
+    # разделяем только один раз (первое слово), а потом берём "второе слово",
+    # которое содержит всю оставшуюся строку:
+    #message=message.split(' ',1)[1].strip()
+    message = re.sub(r'^!*%s: '%nick_name.lower(),'', message.lower())
+
+  if re.match(r'^!*"%s" \(https://matrix.to/.*\): '%nick_name.lower(), message.lower()) != None:
+    to_us=True
+    # некорректный формат body (RitX/Element-android):
+    # убираем командный префикс:
+    #message=re.sub('^!*%s:* '%nick_name.lower(),'', message)
+    log.debug("remove prefix from cmd")
+    message = re.sub(r'^!*"%s" \(https://matrix.to/[/#_.:@A-Za-z]*\): '%nick_name.lower(),'', message.lower())
+
+  # Проверяем сколько в комнате пользователей. Если более двух - то это не приватный чат и потому не отвечаем на команды, если к нам не обращаются по имени:
+  users = client.rooms[room].get_joined_members()
+  if users == None:
+    log.error("room.get_joined_members()")
+    return False
+  users_num = len(users)
+  log.debug("in room %d users"%users_num)
+  if users_num > 2 and to_us == False:
+    # публичная комната - не обрабатываем команды:
+    log.info("this is public room - skip proccess_commands without our name")
+    return True
+  else:
+    log.debug("this is private chat (2 users) - proccess commands")
 
   # обработка по логике
   log.debug("get cmd: %s"%message)
