@@ -91,7 +91,8 @@ def main():
     try:
       lines = zbx_body.split('\n')
       for line in lines:
-        if "UID проблемы" in line:
+        if "UID проблемы" in line or \
+        "Original problem ID" in line:
           zbx_problem_uid = line.split(':')[1].strip()
           log.debug("success extract zbx_problem_uid='%s' from zbx_body"%zbx_problem_uid)
           break
